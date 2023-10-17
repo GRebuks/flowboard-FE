@@ -12,14 +12,14 @@ async function handleLogout() {
   <div>
     <button v-if="auth.isLoggedIn" @click="handleLogout">Logout</button>
     <pre>{{ auth.user }}</pre>
-    <ul>
+    <ul class="navbar">
       <li>
         <nuxt-link to="/">Home</nuxt-link>
       </li>
-      <li>
+      <li v-if="!auth.isLoggedIn">
         <nuxt-link to="/register">Register</nuxt-link>
       </li>
-      <li>
+      <li v-if="!auth.isLoggedIn">
         <nuxt-link to="/login">Log in</nuxt-link>
       </li>
       <li>
@@ -33,4 +33,23 @@ async function handleLogout() {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.navbar {
+  display: flex;
+  gap: 2%;
+  list-style: none;
+}
+
+.navbar > li {
+
+}
+
+.navbar > li > a {
+  color: rgb(41, 90, 150);
+  text-decoration: none;
+}
+
+.navbar > li > a:hover {
+  text-decoration: underline;
+}
+</style>
