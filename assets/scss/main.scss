@@ -1,0 +1,10 @@
+@use 'base';
+
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color-primary);
+    color: var(--text-color-primary);
+}

@@ -1,0 +1,23 @@
+// Sets the default fallback to light-mode.
+// If a variable in a different color mode isn't found, gets the variable from the default fallback.
+// Includes accent colors that do not need translation to any other color modes.
+:root, .light-mode {
+    --text-color-primary: rgb(11, 10, 10);
+    --text-color-secondary: #303134;
+    --text-color-accent: rgb(41, 90, 150);
+    --bg-color-primary: #f0f0f0;
+    --bg-color-secondary: #fff;
+}
+
+.dark-mode {
+    --text-color-primary: #f0f0f0;
+    --text-color-secondary: #fff;
+    --bg-color-primary: rgb(11, 10, 10);
+    --bg-color-secondary: #303134;
+}
+
+.test-mode {
+    --text-color-primary: red;
+    --bg-color-primary: blue;
+}
+
