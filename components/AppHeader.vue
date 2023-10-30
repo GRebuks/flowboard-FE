@@ -23,6 +23,9 @@ async function handleLogout() {
                 <li>
                     <nuxt-link to="/dashboard">Dashboard</nuxt-link>
                 </li>
+                <li>
+                    <nuxt-link to="/projects">Projects</nuxt-link>
+                </li>
             </ul>
 
             <ul class="auth-btns">

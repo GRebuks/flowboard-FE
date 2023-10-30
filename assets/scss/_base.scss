@@ -6,7 +6,8 @@
     --text-color-secondary: #303134;
 
     --bg-color: #f0f0f0;
-    --bg-color-light: #fff;
+    --bg-color-light: #f6f6f6;
+    --bg-color-lighter: #fff;
     --bg-color-dark: #d8d8d8;
     --bg-color-darker: #c0c0c0;
 
@@ -34,14 +35,12 @@
     --text-color-secondary: #fff;
 
     --bg-color: #1C1D21;
-    --bg-color-dark: #191a1e;
-    --bg-color-darker: #16171a;
-    --bg-color-light: #25262c;
+    --bg-color-light: #191a1e;
+    --bg-color-dark: #16171a;
+    --bg-color-lighter: #25262c;
     --bg-color: #16171a;
 }
 
 .test-mode {
     --text-color-primary: red;
-    --bg-color-secondary: blue;
 }
-

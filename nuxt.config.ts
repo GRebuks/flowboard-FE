@@ -10,4 +10,7 @@ export default defineNuxtConfig({
     preference: 'light',
     fallback: 'light',
   },
+  typescript: {
+    shim: false,
+  }
 })
