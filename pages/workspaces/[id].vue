@@ -2,7 +2,7 @@
 
 <template>
   <div>
-    This page contains information about project No. {{ $route.params.id }}
+    This page contains information about workspace No. {{ $route.params.id }}
   </div>
 </template>
 

@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
-import { useProjectsStore } from "~/stores/useProjectsStore";
+import { useWorkspacesStore } from "~/stores/useWorkspacesStore";
 import { ref } from "vue";
 
 type User = {
     id: number;
-    name: string;
+    username: string;
     email: string;
 }
 
@@ -14,14 +14,14 @@ type Credentials = {
 }
 
 type RegistrationInfo = {
-  name: string;
+  username: string;
   email: string;
   password: string;
   password_confirmation: string;
 }
 
 export const useAuthStore = defineStore('auth', () => {
-    const projectsStore = useProjectsStore();
+    const workspacesStore = useWorkspacesStore();
 
     const user = ref<User | null>(null)
     const isLoggedIn = computed(() => !!user.value);
@@ -29,8 +29,8 @@ export const useAuthStore = defineStore('auth', () => {
     async function logout() {
       await useApiFetch("/logout", {method: "POST"});
       user.value = null;
-      projectsStore.clearProjects();
-      navigateTo("/login");
+      workspacesStore.clearWorkspaces();
+      navigateTo("/");
     }
 
     async function fetchUser() {
