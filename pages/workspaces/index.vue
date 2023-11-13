@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 
 import { useAuthStore } from "~/stores/useAuthStore";
+import { useWorkspacesStore } from '~/stores/useWorkspacesStore';
 import { definePageMeta } from '#imports';
 
 definePageMeta({
@@ -8,11 +9,23 @@ definePageMeta({
   layout: 'profile',
 })
 
-import { useWorkspacesStore } from '~/stores/useWorkspacesStore';
+const form = ref({
+  title: "",
+  description: "",
+})
 
 const workspacesStore = useWorkspacesStore();
+
 if (!workspacesStore.workspaces) {
   await workspacesStore.fetchWorkspaces();
+}
+
+async function handleCreateWorkspace() {
+  const {error} = await workspacesStore.createWorkspace(form.value);
+
+  if (error.value) {
+    errors.value = error.value.data.errors;
+  }
 }
 
 </script>
@@ -30,31 +43,29 @@ if (!workspacesStore.workspaces) {
       </div>
     </div>
 
-    <!--
-      Workspace creation form
-
-    <form @submit.prevent="submit">
-      <div v-if="errors.length > 0">
+    
+    <form @submit.prevent="handleCreateWorkspace">
+      <!-- <div v-if="errors.length > 0">
         <div v-for="(error, index) in errors" :key="index" class="alert alert-danger" role="alert">
           {{ error }}
         </div>
-      </div>
+      </div> -->
       <div class="form-group">
-        <label for="exampleInputTitle">Title</label>
+        <label for="input-title">Title</label>
         <input
             type="text"
             class="form-control"
-            id="exampleInputTitle"
+            id="input-title"
             placeholder="Enter title"
             v-model="form.title"
         >
       </div>
       <div class="form-group mt-2">
-        <label for="exampleTextareaDescription">Description</label>
+        <label for="textarea-description">Description</label>
         <textarea
             type="text"
             class="form-control"
-            id="exampleTextareaDescription"
+            id="textarea-description"
             placeholder="Enter description"
             v-model="form.description"
         />
@@ -62,47 +73,11 @@ if (!workspacesStore.workspaces) {
       <div class="button-group w-100 mt-3">
         <button type="submit" class="btn btn-primary">add +</button>
       </div>
-    </form> -->
+    </form>
+
+
   </main>
 </template>
-
-<!-- <script>
-export default {
-  data () {
-    return {
-      workspaces: [],
-      errors: [],
-      form: {
-        title: null,
-        description: null
-      }
-    }
-  },
-  mounted () {
-    this.axios.get('/workspaces').then((response) => {
-      this.workspaces = response.data.data
-      console.log(response)
-    })
-  },
-  methods: {
-    submit () {
-      this.errors = []
-      this.axios.post('/workspaces', this.form).then((response) => {
-        this.workspaces.push(response.data.data)
-      }).catch((error) => {
-        if(error.response.data.message) {
-          this.errors.push(error.response.data.message)
-          return 0
-        }
-        Object.entries(error.response.data.errors).forEach(([key, value]) => {
-          this.errors.push(value[0])
-        })
-      })
-    }
-  }
-}
-</script> -->
-
 
 <style scoped lang="scss">
   .workspace-card-list {

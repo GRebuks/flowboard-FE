@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <div class="workspace-card" @click="navigateTo(`workspaces/${ workspace.id }`)">
+  <div class="workspace-card" @click="navigateTo(`/workspaces/${ workspace.id }`)">
     <div v-if="workspace" class="workspace-card-image">
       <!-- <img src="~/assets/images/workspace.png"/> -->
       <svg viewBox="0 0 360 130" xmlns="http://www.w3.org/2000/svg">

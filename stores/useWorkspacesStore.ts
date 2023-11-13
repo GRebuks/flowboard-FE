@@ -20,9 +20,26 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
       workspaces.value = data.value as Workspace[];
     }
 
+    async function createWorkspace(info: Workspace) {
+      const workspace = await useApiFetch(`/api/workspaces`, {
+        method: 'POST',
+        body: info,
+      });
+      await fetchWorkspaces();
+      return workspace;
+    }
+
+    async function deleteWorkspace(workspace_id) {
+      const workspace = await useApiFetch(`/api/workspaces/${workspace_id}`, {
+        method: 'DELETE',
+      });
+      await fetchWorkspaces();
+      return workspace;
+    }
+
     async function clearWorkspaces() {
       workspaces.value = null;
     }
 
-    return { fetchWorkspaces, fetchUserWorkspaces, workspaces, clearWorkspaces }
+    return { fetchWorkspaces, fetchUserWorkspaces, workspaces, clearWorkspaces, createWorkspace, deleteWorkspace }
   })
