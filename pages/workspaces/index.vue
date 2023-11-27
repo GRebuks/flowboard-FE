@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 
-import { useAuthStore } from "~/stores/useAuthStore";
 import { useWorkspacesStore } from '~/stores/useWorkspacesStore';
 import { definePageMeta } from '#imports';
 
@@ -13,6 +12,8 @@ const form = ref({
   title: "",
   description: "",
 })
+
+const errors = ref();
 
 const workspacesStore = useWorkspacesStore();
 
@@ -45,11 +46,15 @@ async function handleCreateWorkspace() {
 
     
     <form @submit.prevent="handleCreateWorkspace">
-      <!-- <div v-if="errors.length > 0">
-        <div v-for="(error, index) in errors" :key="index" class="alert alert-danger" role="alert">
-          {{ error }}
-        </div>
-      </div> -->
+      <div v-if="errors" class="error-container">
+        <ul>
+          <div v-for="error in errors" class="alert alert-danger" role="alert">
+            <div v-for="message in error">
+              <li>{{ message }}</li>
+            </div>
+          </div>
+        </ul>
+      </div>
       <div class="form-group">
         <label for="input-title">Title</label>
         <input

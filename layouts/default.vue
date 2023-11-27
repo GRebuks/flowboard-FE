@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 const colorMode = useColorMode();
 
+const isDark = computed({
+  get () {
+    return colorMode.value === 'dark'
+  },
+  set () {
+    colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+  }
+})
+
 import { useAuthStore } from '~/stores/useAuthStore';
 const auth = useAuthStore();
 
@@ -26,13 +35,17 @@ async function handleLogout() {
     </div>
   </header>
   <slot />
-  <div>
-    <h1>Color mode: {{ colorMode.value }}</h1>
-    <select v-model="colorMode.preference">
-      <option value="system">System</option>
-      <option value="light">Light</option>
-      <option value="dark">Dark</option>
-      <option value="test">Test</option>
-    </select>
-  </div>
+  <ClientOnly>
+    <UButton
+      :icon="isDark ? 'i-heroicons-moon-20-solid' : 'i-heroicons-sun-20-solid'"
+      color="gray"
+      variant="ghost"
+      aria-label="Theme"
+      @click="isDark = !isDark"
+    />
+
+    <template #fallback>
+      <div class="w-8 h-8" />
+    </template>
+  </ClientOnly>
 </template>
