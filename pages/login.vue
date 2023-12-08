@@ -4,6 +4,7 @@ import { definePageMeta } from '#imports';
 
 definePageMeta({
   layout: 'auth',
+  middleware: ['guest'],
 });
 
 const form = ref({
@@ -32,12 +33,12 @@ async function handleLogin() {
 
 <template>
   <main>
-    <h3>Login</h3>
-    <form @submit.prevent="handleLogin">
+    <h3 class="text-center mt-[10px]">Login</h3>
+    <form @submit.prevent="handleLogin" class="flex flex-col items-center max-w-[350px] w-full ml-auto mr-auto mt-[20px]">
 
-      <div v-if="errors" class="error-container">
-        <ul>
-          <div v-for="error in errors" class="alert alert-danger" role="alert">
+      <div v-if="errors" class="bg-red-400/50 dark:bg-red-950/50 border border-red-700 dark:border-red-700 w-full p-8 m-2 rounded-lg">
+        <ul class="list-disc">
+          <div v-for="error in errors" class="" role="alert">
             <div v-for="message in error">
               <li>{{ message }}</li>
             </div>
@@ -45,74 +46,47 @@ async function handleLogin() {
         </ul>
       </div>
 
-      <div class="form-group form-group-auth">
+      <div class="w-60">
         <label for="input-email">Email address</label>
-        <input
+        <UInput
+            :ui="{rounded: 'rounded-lg'}"
+            color="primary"
+            variant="outline"
+            size="l"
             type="email"
-            class="form-control"
             id="input-email"
             aria-describedby="emailHelp"
             placeholder="Enter email"
             v-model="form.email"
-        >
+        />
       </div>
       <br>
-      <div class="form-group form-group-auth">
+      <div class="w-60">
         <label for="input-password">Password</label>
-        <input
+        <UInput
+            :ui="{rounded: 'rounded-lg'}"
+            color="primary"
+            variant="outline"
+            size="l"
             type="password"
-            class="form-control"
             id="input-password"
             placeholder="Password"
             v-model="form.password"
-        >
+        />
       </div>
-      <div class="button-group">
-        <button type="submit" class="btn btn-auth">Login</button>
+      <div class="text-center mt-[20px] w-full">
+        <UButton
+          size="xl"
+          type="submit"
+        >Login</UButton>
       </div>
-      <RouterLink to="/register" class="register-link">Don't have an account?</RouterLink>
+      <UButton
+          color="primary"
+          variant="ghost"
+          label="Don't have an account?"
+          to="/register"
+      />
     </form>
   </main>
 </template>
 
-<style scoped lang="scss">
-@use '~/assets/scss/base';
-
-h3 {
-  text-align: center;
-  margin-top: 10px;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 350px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 20px;
-}
-
-.button-group {
-  text-align: center;
-  margin-top: 20px;
-  width: 100%;
-}
-
-.button-group > button {
-  margin-right: auto;
-  margin-left: auto;
-  text-align: center;
-}
-a:link, a:visited {
-  color: #0C68DF !important;
-  text-decoration: underline;
-}
-.register-link {
-  text-align: center;
-  display: block;
-  margin-top: 3%;
-}
-
-</style>

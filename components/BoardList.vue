@@ -4,38 +4,14 @@ defineProps(['board'])
 </script>
 
 <template>
-  <div class="list-element">
-    <div class="list-element-content">
+  <div>
+    <div class="p-2 text-normal border border-primary rounded-[5px] hover:cursor-pointer">
       <pre>
         {{ dd(board) }}
       </pre>
-      <p>
+      <p class="m-0">
         {{ board.title }}
       </p>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-@use '~/assets/scss/base';
-.list-element {
-  background-color: var(--color-background-highlight);
-  color: var(--color-text);
-
-  .list-element-content {
-    padding: 2%;
-    line-height: 16px;
-    font-size: 16px;
-    border: 1px solid var(--color-accent);
-    border-radius: 5px;
-
-    p {
-      margin: 0;
-    }
-  }
-  .list-element-content:hover {
-    cursor: pointer;
-    background-color: var(--color-background);
-  }
-}
-</style>

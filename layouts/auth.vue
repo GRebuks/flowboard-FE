@@ -10,8 +10,8 @@ const isDark = computed({
 })
 </script>
 <template>
-  <div class="title-container">
-    <span class="header-title">Flowboard</span>
+  <div class="text-center mt-[100px]">
+    <router-link to="/" class="text-4xl text-center mr-auto ml-auto w-[50%] text-primary">Flowboard</router-link>
   </div>
   <slot />
   <ClientOnly>
@@ -28,18 +28,3 @@ const isDark = computed({
     </template>
   </ClientOnly>
 </template>
-
-<style scoped>
-  .header-title {
-    font-size: 40px !important;
-    text-align: center;
-    margin-right: auto;
-    margin-left: auto;
-    width: 50%;
-  }
-
-  .title-container {
-    text-align: center;
-    margin-top: 100px;
-  }
-</style>

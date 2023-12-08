@@ -8,6 +8,8 @@ definePageMeta({
   layout: 'profile',
 })
 
+const isDeleteModalOpen = ref(false);
+
 const workspacesStore = useWorkspacesStore();
 const boardsStore = useBoardsStore();
 const route = useRoute();
@@ -23,32 +25,42 @@ async function handleDeleteWorkspace(workspaceId: any) {
 </script>
 
 <template>
-  <div class="page-wrapper">
-    <div class="board-list">
-      <h1 class="bg-mariner-700">Boards list:</h1>
+  <div class="flex w-full">
+    <div class="flex flex-col gap-2 h-full w-[20%] bg-gray-100 dark:bg-gray-900">
+      <h1>Boards list:</h1>
       <BoardList v-for="board in boardsStore.boards.data"
         :board="board"
       />
     </div>
-    <div class="page-content">
+    <div class="w-full">
       <p>This page contains information about workspace No. {{ $route.params.id }}</p>
-      <button @click="handleDeleteWorkspace($route.params.id)">Delete</button>
+      <UButton
+          color="red"
+          variant="outline"
+          @click="isDeleteModalOpen = true"
+          label="Delete"
+      />
+      <UModal v-model="isDeleteModalOpen">
+        <div class="p-6">
+          <p>Are you sure you want to delete this workspace?</p>
+          <p>All data will be deleted permanently!</p>
+          <div class="flex justify-center gap-8 p-2">
+            <UButton
+                color="primary"
+                variant="outline"
+                @click="isDeleteModalOpen = false"
+                label="Cancel"
+            />
+            <UButton
+                color="red"
+                variant="solid"
+                @click="handleDeleteWorkspace($route.params.id)"
+                label="Delete"
+            />
+          </div>
+        </div>
+      </UModal>
       <TaskBoard></TaskBoard>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.page-wrapper {
-  display: flex;
-  flex-direction: row;
-}
-.board-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background-color: var(--color-background-highlight);
-  height: 100%;
-  width: 20%;
-}
-</style>

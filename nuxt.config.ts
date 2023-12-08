@@ -8,10 +8,11 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@nuxt/ui',
   ],
-  css: ['~/assets/scss/main.scss'],
+  css: ['~/assets/css/main.css'],
   colorMode: {
     preference: 'light',
     fallback: 'light',
+    classSuffix: '',
   },
   typescript: {
     shim: false,
