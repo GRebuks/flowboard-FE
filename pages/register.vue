@@ -4,6 +4,7 @@ import { definePageMeta } from '#imports';
 
 definePageMeta({
   layout: 'auth',
+  middleware: ['guest'],
 })
 
 const form = ref({
@@ -30,9 +31,9 @@ async function handleRegister() {
 
 <template>
   <main>
-    <h3>Register</h3>
-    <form @submit.prevent="handleRegister">
-      <div v-if="errors" class="error-container">
+    <h3 class="text-center mt-[10px]">Register</h3>
+    <form @submit.prevent="handleRegister" class="flex flex-col items-center max-w-[350px] w-full ml-auto mr-auto mt-[20px]">
+      <div v-if="errors" class="bg-red-400/50 dark:bg-red-950/50 border border-red-700 dark:border-red-700 w-full p-8 m-2 rounded-lg">
         <ul>
           <div v-for="error in errors" class="alert alert-danger" role="alert">
             <div v-for="message in error">
@@ -41,91 +42,78 @@ async function handleRegister() {
           </div>
         </ul>
       </div>
-      <div class="form-group form-group-auth">
+      <div class="w-60">
         <label for="input-username">Username</label>
-        <input
+        <UInput
+            :ui="{rounded: 'rounded-lg'}"
+            color="primary"
+            variant="outline"
+            size="l"
             type="text"
-            class="form-control"
             id="input-username"
             placeholder="Enter username"
             v-model="form.username"
-        >
+        />
       </div>
       <br>
-      <div class="form-group form-group-auth">
+      <div class="w-60">
         <label for="input-email">Email address</label>
-        <input
+        <UInput
+            :ui="{rounded: 'rounded-lg'}"
+            color="primary"
+            variant="outline"
+            size="l"
             type="email"
-            class="form-control"
             id="input-email"
             aria-describedby="emailHelp"
             placeholder="Enter email"
             v-model="form.email"
-        >
+        />
       </div>
       <br>
-      <div class="form-group form-group-auth">
+      <div class="w-60">
         <label for="input-password">Password</label>
-        <input
+        <UInput
+            :ui="{rounded: 'rounded-lg'}"
+            color="primary"
+            variant="outline"
+            size="l"
             type="password"
             class="form-control"
             id="input-password"
             placeholder="Password"
             v-model="form.password"
-        >
+        />
       </div>
 
       <br>
-      <div class="form-group form-group-auth">
+      <div class="w-60">
         <label for="input-password-confirmation">Confirm password</label>
-        <input
+        <UInput
+            :ui="{rounded: 'rounded-lg'}"
+            color="primary"
+            variant="outline"
+            size="l"
             type="password"
             class="form-control"
             id="input-password-confirmation"
             placeholder="Confirm password"
             v-model="form.password_confirmation"
-        >
+        />
       </div>
-      <div class="button-group w-100">
-        <button type="submit" class="btn btn-primary btn-auth">Register</button>
+      <div class="text-center mt-[20px] w-full">
+        <UButton
+            size="xl"
+            type="submit"
+            label="Register"
+        />
       </div>
-      <RouterLink to="/login" class="login-link">Already have an account?</RouterLink>
+      <UButton
+          color="primary"
+          variant="ghost"
+          label="Already have an account?"
+          to="/login"
+      />
     </form>
   </main>
 </template>
-
-<style scoped lang="scss">
-
-h3 {
-  text-align: center;
-  margin-top: 10px;
-}
-
-form {
-  max-width: 350px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 20px;
-}
-
-.button-group {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.button-group > button {
-  margin-right: auto;
-  margin-left: auto;
-  text-align: center;
-}
-a:link, a:visited {
-  color: #0C68DF !important;
-  text-decoration: underline;
-}
-.login-link {
-  text-align: center;
-  display: block;
-  margin-top: 3%;
-}
-</style>
