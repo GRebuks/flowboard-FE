@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { useWorkspacesStore } from "~/stores/useWorkspacesStore";
+import { useBoardsStore } from "~/stores/useBoardsStore";
 import { ref } from "vue";
 
 type User = {
@@ -22,6 +23,7 @@ type RegistrationInfo = {
 
 export const useAuthStore = defineStore('auth', () => {
     const workspacesStore = useWorkspacesStore();
+    const BoardsStore = useBoardsStore();
 
     const user = ref<User | null>(null)
     const isLoggedIn = computed(() => !!user.value);
@@ -30,6 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
       await useApiFetch("/logout", {method: "POST"});
       user.value = null;
       workspacesStore.clearWorkspaces();
+      BoardsStore.clearBoards();
       navigateTo("/");
     }
 

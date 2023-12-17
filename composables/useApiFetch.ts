@@ -1,4 +1,4 @@
-import type { UseFetchOptions } from 'nuxt/app'
+import type { UseFetchOptions } from '#imports'
 
 export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}) {
   let headers: any = {
@@ -6,7 +6,9 @@ export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}) 
     referer: "http://localhost:3000",
   }
 
-  const token = useCookie('XSRF-TOKEN');
+  const token = useCookie('XSRF-TOKEN', {
+    secure: true
+  });
 
   if (token.value) {
     headers['X-XSRF-TOKEN'] = token.value as string;

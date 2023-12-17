@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import DashboardInfoBar from '../components/DashboardInfoBar.vue';
 const colorMode = useColorMode();
 
 const isDark = computed({
