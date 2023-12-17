@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useAuthStore } from "~/stores/useAuthStore";
 import { definePageMeta } from '#imports';
+import { z } from 'zod'
 
 definePageMeta({
   layout: 'auth',
@@ -29,6 +30,7 @@ async function handleLogin() {
     errors.value = error.value.data.errors;
   }
 }
+
 </script>
 
 <template>

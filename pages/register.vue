@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useAuthStore } from "~/stores/useAuthStore";
 import { definePageMeta } from '#imports';
+import {z} from "zod";
 
 definePageMeta({
   layout: 'auth',
@@ -27,80 +28,53 @@ async function handleRegister() {
     errors.value = error.value.data.errors;
   }
 }
+
+async function handleNewRegister(event: FormSubmitEvent<any>) {
+  const {error} = await auth.register(event.data);
+
+  if (!error.value) {
+    return navigateTo("/");
+  } else {
+    errors.value = error.value.data.errors;
+  }
+}
+
+// Eager validation
+const schema = z.object({
+  username: z.string().min(5, 'Must be at least 5 characters'),
+  email: z.string().email('Invalid e-mail address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password_confirmation: z.string(),
+}).refine(data => data.password === data.password_confirmation, {
+  message: 'Passwords do not match',
+});
+
+const state = reactive({
+  username: undefined,
+  email: undefined,
+  password: undefined,
+  password_confirmation: undefined,
+})
+
 </script>
 
 <template>
   <main>
     <h3 class="text-center mt-[10px]">Register</h3>
-    <form @submit.prevent="handleRegister" class="flex flex-col items-center max-w-[350px] w-full ml-auto mr-auto mt-[20px]">
-      <div v-if="errors" class="bg-red-400/50 dark:bg-red-950/50 border border-red-700 dark:border-red-700 w-full p-8 m-2 rounded-lg">
-        <ul>
-          <div v-for="error in errors" class="alert alert-danger" role="alert">
-            <div v-for="message in error">
-              <li>{{ message }}</li>
-            </div>
-          </div>
-        </ul>
-      </div>
-      <div class="w-60">
-        <label for="input-username">Username</label>
-        <UInput
-            :ui="{rounded: 'rounded-lg'}"
-            color="primary"
-            variant="outline"
-            size="l"
-            type="text"
-            id="input-username"
-            placeholder="Enter username"
-            v-model="form.username"
-        />
-      </div>
-      <br>
-      <div class="w-60">
-        <label for="input-email">Email address</label>
-        <UInput
-            :ui="{rounded: 'rounded-lg'}"
-            color="primary"
-            variant="outline"
-            size="l"
-            type="email"
-            id="input-email"
-            aria-describedby="emailHelp"
-            placeholder="Enter email"
-            v-model="form.email"
-        />
-      </div>
-      <br>
-      <div class="w-60">
-        <label for="input-password">Password</label>
-        <UInput
-            :ui="{rounded: 'rounded-lg'}"
-            color="primary"
-            variant="outline"
-            size="l"
-            type="password"
-            class="form-control"
-            id="input-password"
-            placeholder="Password"
-            v-model="form.password"
-        />
-      </div>
 
-      <br>
-      <div class="w-60">
-        <label for="input-password-confirmation">Confirm password</label>
-        <UInput
-            :ui="{rounded: 'rounded-lg'}"
-            color="primary"
-            variant="outline"
-            size="l"
-            type="password"
-            class="form-control"
-            id="input-password-confirmation"
-            placeholder="Confirm password"
-            v-model="form.password_confirmation"
-        />
-      </div>
+    <UForm :schema="schema" :state="state" class="space-y-4 w-[20%] m-auto" @submit="handleNewRegister">
+      <UFormGroup label="Username" name="username" eager-validation>
+        <UInput v-model="state.username" placeholder="Username" />
+      </UFormGroup>
+      <UFormGroup label="E-mail" name="email" eager-validation>
+        <UInput v-model="state.email" placeholder="test@example.com" />
+      </UFormGroup>
+      <UFormGroup label="Password" name="password" eager-validation>
+        <UInput v-model="state.password" placeholder="Password"  type="password"/>
+      </UFormGroup>
+      <UFormGroup label="Confirm password" name="password_confirmation" eager-validation>
+        <UInput v-model="state.password_confirmation" placeholder="Confirm password" type="password"/>
+      </UFormGroup>
       <div class="text-center mt-[20px] w-full">
         <UButton
             size="xl"
@@ -114,6 +88,6 @@ async function handleRegister() {
           label="Already have an account?"
           to="/login"
       />
-    </form>
+    </UForm>
   </main>
 </template>
