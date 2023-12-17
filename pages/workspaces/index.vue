@@ -38,8 +38,6 @@ let boardFocus: { id: any; };
 const currentBoards = ref();
 const items = ref([]);
 
-reloadWorkspaces();
-
 async function reloadWorkspaces() {
   currentBoards.value = {};
   items.value = [];
@@ -61,10 +59,12 @@ async function reloadWorkspaces() {
   }
 }
 
+onMounted(await reloadWorkspaces);
+
 async function handleDeleteWorkspace(workspaceId: any) {
   await workspacesStore.deleteWorkspace(workspaceId);
   isDeleteModalOpen.value = false;
-  await reloadWorkspaces();
+  reloadWorkspaces();
 }
 
 async function handleCreateBoard(workspaceId: any) {
