@@ -64,7 +64,7 @@ onMounted(await reloadWorkspaces);
 async function handleDeleteWorkspace(workspaceId: any) {
   await workspacesStore.deleteWorkspace(workspaceId);
   isDeleteModalOpen.value = false;
-  reloadWorkspaces();
+  await reloadWorkspaces();
 }
 
 async function handleCreateBoard(workspaceId: any) {
