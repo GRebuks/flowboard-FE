@@ -28,6 +28,7 @@ export const useBoardsStore = defineStore('boards', () => {
     async function fetchBoards(workspace_id: any) {
       const {data} = await useApiFetch(`/api/workspaces/${workspace_id}/boards`);
       boards.value = data.value as Board[];
+      return data.value as Board[];
     }
 
     async function fetchBoard(workspace_id: any, board_id: any) {
