@@ -24,7 +24,7 @@
 </script>
 
 <template>
-  <div class="flex flex-col h-[300px] w-[360px] rounded-[10px] overflow-hidden bg-transparent mx-[1%] transition-[1s] shadow shadow-primary border border-primary hover:opacity-90 hover:cursor-pointer hover:scale-[1.02] hover:transition-[0.3s]" @click="navigateTo(`/workspaces/${ workspace.id }`)">
+  <div class="flex flex-col h-[300px] w-[360px] rounded-[10px] overflow-hidden bg-transparent mx-[1%] transition-[1s] shadow shadow-primary border border-primary hover:opacity-90 hover:cursor-pointer hover:scale-[1.02] hover:transition-[0.3s] my-5" @click="navigateTo(`/workspaces/${ workspace.id }`)">
 
     <div v-if="workspace" class="h-[130px]">
       <!-- <img src="~/assets/images/workspace.png"/> -->

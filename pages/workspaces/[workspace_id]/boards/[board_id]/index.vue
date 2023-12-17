@@ -36,7 +36,7 @@ async function handleDeleteBoard() {
 
 <template>
 <!--  <main>-->
-    <p>Board No. {{ $route.params.board_id }} - '{{ board.data.title }}'</p>
+    <h1 class="text-2xl">Board No. {{ $route.params.board_id }} - '{{ board.data.title }}'</h1>
 
     <!-- Board deletion -->
     <UButton

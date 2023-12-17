@@ -11,6 +11,7 @@ definePageMeta({
 const boardForm = ref({
   title: "",
   description: "",
+  color: ""
 });
 
 const errors = ref();
@@ -126,6 +127,10 @@ async function handleCreateBoard(workspaceId: any) {
                     placeholder="Enter description"
                     v-model="boardForm.description"
                 />
+              </div>
+              <div class="form-group mt-2">
+                <label for="color">Display color</label>
+                <input type="color" id="head" name="head" value="#e66465"/>
               </div>
               <div class="button-group w-100 mt-3">
                 <UButton
