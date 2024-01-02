@@ -77,7 +77,7 @@ async function handleCreateBoard(workspaceId: any) {
         <div class="flex flex-wrap justify-evenly" v-if="boardsStore.boards" v-for="board in boardsStore.boards.data">
           <UCard class="m-2 cursor-pointer" @click="navigateTo(`/workspaces/${ route.params.workspace_id }/boards/${ board.id }`)">
             <div class="flex gap-4">
-              <h2 class="text-2xl">{{ board.title }}</h2>
+              <h2 class="text-2xl text-nowrap overflow-hidden text-ellipsis">{{ board.title }}</h2>
               <div class="flex gap-2">
                 <UButton
                     color="primary"

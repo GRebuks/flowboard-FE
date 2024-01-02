@@ -161,7 +161,7 @@ const colorList = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
                       @click="boardFocus=board.id"
                   >
                     <div class="flex justify-between items-center">
-                      <p class="text-xl cursor-pointer" @click="navigateTo(`/workspaces/${ item.id }/boards/${board.id}`)">{{ board.title }}</p>
+                      <p class="text-xl cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-full" @click="navigateTo(`/workspaces/${ item.id }/boards/${board.id}`)">{{ board.title }}</p>
                       <div class="gap-3 items-center hidden group-hover:flex">
                         <UButton
                             color="red"
