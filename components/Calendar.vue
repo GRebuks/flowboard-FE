@@ -115,13 +115,13 @@ function areDatesEqual(date1: Date, date2: Date): boolean {
 function hasTaskOnDate(date: any) {
   const selectedDate = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), date);
   return tasks.value.some((task: any) => {
-    return areDatesEqual(new Date(task.created_at), selectedDate);
+    return areDatesEqual(new Date(task.due_date), selectedDate);
   });
 }
 
 function getTasksForDate(date: any) {
   return tasks.value.filter((task: any) => {
-    const taskDate = new Date(task.created_at);
+    const taskDate = new Date(task.due_date);
     const targetDate = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), date);
     return areDatesEqual(taskDate, targetDate)
   });

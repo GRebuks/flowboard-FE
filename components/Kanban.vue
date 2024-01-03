@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { useBoardsStore } from '~/stores/useBoardsStore';
-import { Container, Draggable } from "vue3-smooth-dnd";
+import {ref} from 'vue';
+import {useBoardsStore} from '~/stores/useBoardsStore';
+import {Container, Draggable} from "vue3-smooth-dnd";
 
 const boardsStore = useBoardsStore();
 const route = useRoute();
@@ -30,8 +30,7 @@ const isColumnAddModalOpen = ref(false);
 const isTaskAddModalOpen = ref(false);
 const isTaskEditModalOpen = ref(false);
 
-let columnFocus: { id: any; };
-
+const columnFocus = ref();
 const taskFocus = ref();
 const commentFocus = ref();
 
@@ -54,7 +53,7 @@ const taskItems = [
     icon: 'i-heroicons-trash-20-solid',
     shortcuts: ['⌘', 'D'],
     click: () => {
-      handleDeleteTask(columnFocus.id, taskFocus.value.id);
+      handleDeleteTask(columnFocus.value.id, taskFocus.value.id);
     }
   }]
 ]
@@ -97,13 +96,30 @@ const commentItems = [
     icon: 'i-heroicons-trash-20-solid',
     shortcuts: ['⌘', 'D'],
     click: () => {
-      handleDeleteComment(columnFocus.id, taskFocus.value.id, commentFocus.value.id);
+      handleDeleteComment(columnFocus.value.id, taskFocus.value.id, commentFocus.value.id);
     }
   }]
 ]
 
-const date = ref(new Date())
-const dateLabel = computed(() => date.value.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+function calculateDueDateColor(task: any): string {
+  const currentDate = new Date();
+  const dueDate = new Date(task.due_date);
+  const timeDifference = dueDate - currentDate;
+
+  if (task.completed) {
+    return 'green';
+  } else if (timeDifference <= 0) {
+    return 'red';
+  } else if (timeDifference < 24 * 60 * 60 * 1000) {
+    return 'yellow';
+  } else {
+    return 'primary';
+  }
+}
+
+function formatDate(dateString: any) {
+  return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 async function handleCreateColumn() {
   const {error} = await boardsStore.createColumn(route.params.workspace_id, route.params.board_id, columnForm.value);
@@ -155,6 +171,15 @@ async function handleUpdateTask(columnId: any, taskId: any) {
   updateFocusedElements(columnId, taskId);
 }
 
+async function updateTask(columnId: any, task: any) {
+  const {error} = await boardsStore.updateTask(route.params.workspace_id, route.params.board_id, columnId, task.id, task);
+  board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
+
+  if (error.value) {
+    errors.value = error.value.data.errors;
+  }
+}
+
 async function handleDeleteTask(columnId: any, taskId: any) {
   await boardsStore.deleteTask(route.params.workspace_id, route.params.board_id, columnId, taskId);
   board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
@@ -184,10 +209,81 @@ function updateFocusedElements(columnId: any, taskId: any) {
   taskFocus.value = currentColumn.tasks.find(task => task.id === taskId);
 }
 
+async function handleColumnDrop(dropResult: any) {
+  if (dropResult.removedIndex !== null && dropResult.addedIndex !== null) {
+    // Item was dragged within the same container
+    if (dropResult.removedIndex === dropResult.addedIndex) {
+      // Item was dropped back in its original position
+      console.log('Column was dropped back in its original position.');
+    } else {
+      const columns = board.value.data.columns;
+      const movedColumn = columns[dropResult.removedIndex];
+      movedColumn.order = dropResult.addedIndex + 1;
+
+      if (dropResult.addedIndex > dropResult.removedIndex) {
+        // Items that were shifted to the right
+        for (let i = dropResult.removedIndex + 1; i <= dropResult.addedIndex; i++) {
+          columns[i].order -= 1;
+        }
+      } else if (dropResult.addedIndex < dropResult.removedIndex) {
+        // Items that were shifted to the left
+        for (let i = dropResult.addedIndex; i < dropResult.removedIndex; i++) {
+          columns[i].order += 1;
+        }
+      }
+
+      columns.splice(dropResult.removedIndex, 1); // Remove from the old position
+      columns.splice(dropResult.addedIndex, 0, movedColumn); // Insert at the new position
+
+      board.value.data.columns = columns;
+      await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board);
+    }
+  } else if (dropResult.addedIndex !== null) {
+    // Item was dropped from an external source
+    console.log('Column was dropped from an external source.');
+  }
+}
+
+async function handleTaskDrop(columnActive: any, dropResult: any) {
+  if (dropResult.removedIndex !== null && dropResult.addedIndex !== null) {
+    // Item was dragged within the same container
+    if (dropResult.removedIndex === dropResult.addedIndex) {
+      // Item was dropped back in its original position
+      console.log('Task was dropped back in its original position.');
+    } else {
+      const tasks = columnActive.tasks;
+      console.log(columnActive);
+      const movedTask = tasks[dropResult.removedIndex];
+      movedTask.order = dropResult.addedIndex + 1;
+
+      if (dropResult.addedIndex > dropResult.removedIndex) {
+        // Items that were shifted to the right
+        for (let i = dropResult.removedIndex + 1; i <= dropResult.addedIndex; i++) {
+          tasks[i].order -= 1;
+        }
+      } else if (dropResult.addedIndex < dropResult.removedIndex) {
+        // Items that were shifted to the left
+        for (let i = dropResult.addedIndex; i < dropResult.removedIndex; i++) {
+          tasks[i].order += 1;
+        }
+      }
+
+      tasks.splice(dropResult.removedIndex, 1); // Remove from the old position
+      tasks.splice(dropResult.addedIndex, 0, movedTask); // Insert at the new position
+
+      board.value.data.columns.find(column => column.id === columnActive.id).tasks = tasks;
+
+      await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board);
+    }
+  } else if (dropResult.addedIndex !== null) {
+    console.log("Task was moved into a different column");
+  }
+}
+
 </script>
 
 <template>
-  <Container orientation="horizontal" class="flex gap-3 overflow-auto m-[1%] p-[1%]">
+  <Container orientation="horizontal" class="flex gap-3 overflow-auto m-[1%] p-[1%]" @drop="handleColumnDrop">
     <Draggable v-if="board.data.columns.length > 0" v-for="column in board.data.columns">
       <div class="flex flex-col gap-3 group">
         <!-- COLUMN CARD -->
@@ -208,27 +304,28 @@ function updateFocusedElements(columnId: any, taskId: any) {
 
           <!-- TASK CARD -->
           <Container
+              @drop="handleTaskDrop(column, $event)"
               group-name="col-items"
               :shouldAcceptDrop="(e) =>  (e.groupName === 'col-items')"
               :drop-placeholder="{ className:
                 `bg-primary bg-opacity-20
                 border-dotted border-2
-                border-primary rounded-lg`,
+                border-primary rounded-lg mt-3`,
               animationDuration: '200',
               showOnTop: true }"
 
               drag-class="
                 transition duration-100 ease-in z-50
-                transform scale-110 rotate-[15deg]"
+                transform scale-110 rotate-[10deg] opacity-75"
 
               drop-class="transition duration-100
                 ease-in z-50 transform
-                -rotate-2 scale-90"
+                -rotate-2 scale-90 opacity-100"
 
               class="flex flex-col gap-3">
-            <Draggable v-for="task in column.tasks">
-              <UCard class="w-[250px] cursor-pointer" :ui="{header: { background: 'bg-primary-700' }, body: { padding: 'sm:p-4' } }">
-                <template #header></template>
+            <Draggable v-for="task in column.tasks" :payload="{taskId: task.id}">
+              <UCard class="w-[250px] cursor-pointer" :ui="{header: { background: `bg-${task.color}-500` }, body: { padding: 'sm:p-4' } }">
+                <template #header v-if="task.color"></template>
                 <div class="flex flex-row justify-between items-center">
                   <p class="text-lg">{{ task.title }}</p>
                   <UDropdown :items="taskItems" :popper="{ placement: 'right-start' }" >
@@ -240,7 +337,15 @@ function updateFocusedElements(columnId: any, taskId: any) {
                     />
                   </UDropdown>
                 </div>
-                <UButton color="red" variant="outline" icon="i-heroicons-calendar-days-20-solid" :label="dateLabel" />
+                <div v-if="task.due_date">
+                  <UButton
+                      :color="calculateDueDateColor(task)"
+                      variant="outline"
+                      icon="i-heroicons-calendar-days-20-solid"
+                      :label="formatDate(task.due_date)"
+                      @click="task.completed = !task.completed, updateTask(column.id, task)"
+                  />
+                </div>
               </UCard>
             </Draggable>
           </Container>
@@ -441,5 +546,8 @@ function updateFocusedElements(columnId: any, taskId: any) {
 <style scoped>
 .smooth-dnd-container.horizontal{
   display: flex !important;
+}
+.smooth-dnd-container.vertical > .smooth-dnd-draggable-wrapper {
+  overflow: visible !important;
 }
 </style>

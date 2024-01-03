@@ -128,12 +128,21 @@ export const useBoardsStore = defineStore('boards', () => {
         return comment;
     }
 
+    async function saveBoard(workspace_id: any, board_id: any, info: any) {
+        const board = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/save`, {
+            method: 'POST',
+            body: info,
+        });
+        await fetchBoards(workspace_id);
+        return board;
+    }
+
     async function clearBoards() {
       boards.value = null;
     }
 
     return {
-        fetchBoards, fetchBoard, clearBoards,
+        fetchBoards, fetchBoard, clearBoards, saveBoard,
         createBoard, deleteBoard,
         createColumn, deleteColumn,
         createTask, updateTask, deleteTask,
