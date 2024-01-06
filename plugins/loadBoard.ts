@@ -1,5 +1,4 @@
 import { useAuthStore } from "~/stores/useAuthStore";
-import { useWorkspacesStore } from "~/stores/useWorkspacesStore";
 import { useBoardsStore } from "~/stores/useBoardsStore";
 
 export default defineNuxtPlugin(async (nuxtApp) => {

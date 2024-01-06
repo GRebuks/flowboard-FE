@@ -31,8 +31,8 @@ export const useAuthStore = defineStore('auth', () => {
     async function logout() {
       await useApiFetch("/logout", {method: "POST"});
       user.value = null;
-      workspacesStore.clearWorkspaces();
-      BoardsStore.clearBoards();
+      await workspacesStore.clearWorkspaces();
+      await BoardsStore.clearBoards();
       navigateTo("/");
     }
 

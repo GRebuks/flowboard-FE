@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useWorkspacesStore } from '~/stores/useWorkspacesStore';
 import { useBoardsStore } from '~/stores/useBoardsStore';
 import { definePageMeta } from '#imports';
 

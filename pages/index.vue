@@ -8,8 +8,8 @@
             <span class="font-light text-4xl pl-[5px]">Your Ultimate Project Management Companion</span>
           </h1>
           <div class="flex gap-[10px]">
-            <RouterLink to="/login" class="py-[10px] px-[60px] rounded-[14px] font-medium text-2xl flex items-center text-center transition-[0.3s] transition-all text-white dark:text-black bg-primary hover:scale-[1.04]">Login</RouterLink>
-            <RouterLink to="/about" class="py-[10px] px-[50px] rounded-[14px] font-medium text-2xl flex items-center text-center transition-[0.3s] transition-all border-4 border-primary bg-transparent hover:scale-[1.04]">About us</RouterLink>
+            <RouterLink to="/login" class="py-[10px] px-[60px] rounded-[14px] font-medium text-2xl flex items-center text-center transition-[0.3s] text-white dark:text-black bg-primary hover:scale-[1.04]">Login</RouterLink>
+            <RouterLink to="/about" class="py-[10px] px-[50px] rounded-[14px] font-medium text-2xl flex items-center text-center transition-[0.3s] border-4 border-primary bg-transparent hover:scale-[1.04]">About us</RouterLink>
           </div>
         </div>
         <img src="@/assets/images/landing_page.svg" class="select-none w-[600px]" alt="illustrative image">

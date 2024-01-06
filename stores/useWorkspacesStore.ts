@@ -1,11 +1,12 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-
-type Workspace = {
-    id: number;
-    title: string;
-    description: string;
-}
+import type {Workspace} from "~/types";
+//
+// type Workspace = {
+//     id: number;
+//     title: string;
+//     description: string;
+// }
 
 type WorkspaceCreate = {
     title: string;

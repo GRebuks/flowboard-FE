@@ -1,11 +1,12 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import type {BoardData} from "~/types";
 
-type Board = {
-    id: number;
-    title: string;
-    description: string;
-}
+// type Board = {
+//     id: number;
+//     title: string;
+//     description: string;
+// }
 
 type TaskCreate = {
     title: string;
@@ -27,17 +28,17 @@ type Comment = {
 }
 
 export const useBoardsStore = defineStore('boards', () => {
-    const boards = ref<Board[] | null>(null);
+    const boards = ref<BoardData[] | null>(null);
 
-    async function fetchBoards(workspace_id: any) {
+    async function fetchBoards(workspace_id: any): Promise<BoardData[]> {
       const {data} = await useApiFetch(`/api/workspaces/${workspace_id}/boards`);
-      boards.value = data.value as Board[];
-      return data.value as Board[];
+      boards.value = data.value as BoardData[];
+      return data.value as BoardData[];
     }
 
-    async function fetchBoard(workspace_id: any, board_id: any) {
+    async function fetchBoard(workspace_id: any, board_id: any): Promise<BoardData> {
         const {data} = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`);
-        return data.value;
+        return data.value as BoardData;
     }
 
 
@@ -137,6 +138,15 @@ export const useBoardsStore = defineStore('boards', () => {
         return board;
     }
 
+    async function reorderTask(workspace_id: any, board_id: any, info: any) {
+        const board = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/reorder`, {
+            method: 'POST',
+            body: info,
+        });
+        await fetchBoards(workspace_id);
+        return board;
+    }
+
     async function clearBoards() {
       boards.value = null;
     }
@@ -145,7 +155,7 @@ export const useBoardsStore = defineStore('boards', () => {
         fetchBoards, fetchBoard, clearBoards, saveBoard,
         createBoard, deleteBoard,
         createColumn, deleteColumn,
-        createTask, updateTask, deleteTask,
+        createTask, updateTask, deleteTask, reorderTask,
         createComment, updateComment, deleteComment,
 
         boards,
