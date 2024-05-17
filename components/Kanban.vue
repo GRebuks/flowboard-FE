@@ -1,8 +1,11 @@
 <script lang="ts" setup>
-import {ref} from 'vue';
+import {ref, onMounted, onBeforeUnmount} from 'vue';
 import {useBoardsStore} from '~/stores/useBoardsStore';
 import {Container, Draggable} from 'vue3-smooth-dnd';
 import type {BoardData, DropResult} from "~/types";
+
+const timeoutId = ref<ReturnType<typeof setTimeout> | null>(null);
+const isProcessing = ref<boolean>(false);
 
 const boardsStore = useBoardsStore();
 const route = useRoute();
@@ -10,7 +13,6 @@ const route = useRoute();
 const board = ref<BoardData | null>(null);
 board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
 
-console.log(board.value);
 const columnForm = ref({
   title: "",
   description: "",
@@ -104,25 +106,49 @@ const commentItems = [
   }]
 ]
 
-function calculateDueDateColor(task: any): string {
-  const currentDate = new Date();
-  const dueDate = new Date(task.due_date);
-  const timeDifference: number = dueDate.getTime() - currentDate.getTime();
+const taskEditNav = [{
+  label: 'Dates',
+  icon: 'i-heroicons-clock',
+  click: () => {
+    console.log("Dates")
+  }
+}, {
+  label: 'Colors',
+  icon: 'i-heroicons-chart-bar',
+  click: () => {
+    console.log("Colors")
+  }
+}]
 
-  if (task.completed) {
-    return 'green';
-  } else if (timeDifference <= 0) {
-    return 'red';
-  } else if (timeDifference < 24 * 60 * 60 * 1000) {
-    return 'yellow';
-  } else {
-    return 'primary';
+// REQUEST LOOPS //
+const fetchData = async () => {
+  if (isProcessing.value) return;
+  isProcessing.value = true;
+
+  try {
+    const response = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
+    if(response) {
+      board.value = response;
+    }
+  } catch (error) {
+    console.error('Data fetch error: ', error);
+  } finally {
+    isProcessing.value = false;
+    timeoutId.value = setTimeout(fetchData, 1000);
   }
 }
 
-function formatDate(dateString: any) {
-  return new Date(dateString).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
-}
+const startRequestLoop = () => {
+  fetchData();
+};
+
+// Stop the request loop
+const stopRequestLoop = () => {
+  if (timeoutId.value !== null) {
+    clearTimeout(timeoutId.value);
+    timeoutId.value = null;
+  }
+};
 
 async function handleCreateColumn() {
   const {error} = await boardsStore.createColumn(route.params.workspace_id, route.params.board_id, columnForm.value);
@@ -175,15 +201,6 @@ async function handleUpdateTask(columnId: any, taskId: any) {
   }
 
   updateFocusedElements(columnId, taskId);
-}
-
-async function updateTask(columnId: any, task: any) {
-  const {error} = await boardsStore.updateTask(route.params.workspace_id, route.params.board_id, columnId, task.id, task);
-  board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
-
-  if (error.value) {
-    errors.value = error.value.data.errors;
-  }
 }
 
 async function handleDeleteTask(columnId: any, taskId: any) {
@@ -329,11 +346,29 @@ async function handleTaskDrop(columnActive: any, dropResult: DropResult) {
   }
 }
 
+async function updateTask(columnId: any, task: any) {
+  const {error} = await boardsStore.updateTask(route.params.workspace_id, route.params.board_id, columnId, task.id, task);
+  board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
+
+  if (error.value) {
+    errors.value = error.value.data.errors;
+  }
+}
+
+// Lifecycle hooks
+onMounted(() => {
+  startRequestLoop();
+});
+
+onBeforeUnmount(() => {
+  stopRequestLoop();
+});
+
 </script>
 
 <template>
   <Container class="flex gap-3 overflow-auto m-[1%] p-[1%]" orientation="horizontal" @drop="handleColumnDrop">
-    <Draggable v-for="column in board.data.columns" v-if="board.data.columns.length > 0">
+    <Draggable v-if="board.data.columns.length > 0" v-for="column in board.data.columns">
       <div class="flex flex-col gap-3 group">
         <!-- COLUMN CARD -->
         <UCard class="w-[300px] cursor-pointer">
@@ -359,7 +394,7 @@ async function handleTaskDrop(columnActive: any, dropResult: DropResult) {
                 border-primary rounded-lg mt-3`,
               animationDuration: '200',
               showOnTop: true }"
-              :shouldAcceptDrop="(e) =>  (e.groupName === 'col-items')"
+              :shouldAcceptDrop="(e: any) =>  (e.groupName === 'col-items')"
               class="flex flex-col gap-3"
               drag-class="
                 transition duration-100 ease-in z-50
@@ -388,13 +423,7 @@ async function handleTaskDrop(columnActive: any, dropResult: DropResult) {
                   </UDropdown>
                 </div>
                 <div v-if="task.due_date">
-                  <UButton
-                      :color="calculateDueDateColor(task)"
-                      :label="formatDate(task.due_date)"
-                      icon="i-heroicons-calendar-days-20-solid"
-                      variant="outline"
-                      @click="task.completed = !task.completed; updateTask(column.id, task)"
-                  />
+                  <DueDateButton :task="task" :column="column"></DueDateButton>
                 </div>
               </UCard>
             </Draggable>
@@ -529,71 +558,76 @@ async function handleTaskDrop(columnActive: any, dropResult: DropResult) {
   </UModal>
 
   <!-- Task editing/view modal -->
-  <UModal v-model="isTaskEditModalOpen" :ui="{width: 'w-full sm:max-w-[80%]'}">
-    <div class="p-4">
-      <div class="flex flex-col gap-2">
-        <h2 id="task-editable-title" class="text-2xl outline-none dark:focus:bg-gray-800 focus:bg-gray-200 p-1 rounded"
-            contenteditable="true" spellcheck="false" @blur="handleUpdateTask(columnFocus.id, taskFocus.id)">
-          {{ taskFocus.title }}</h2>
-        <UTextarea
-            id="task-editable-description"
-            v-model="taskFocus.description"
-            class="w-full p-1"
-            placeholder="Add a description"
-            ui="{variant: {none: 'bg-gray-200 dark:bg-gray-800'} }"
-            variant="none"
-            @blur="handleUpdateTask(columnFocus.id, taskFocus.id)"
-        />
-      </div>
-
-      <form @submit.prevent="handleCreateComment(columnFocus.id, taskFocus.id)">
-        <div class="form-group mt-2">
-          <label for="textarea-description">Comment</label>
+  <UModal v-model="isTaskEditModalOpen" :ui="{width: 'w-full sm:max-w-[50%]'}">
+    <div class="flex flex-row">
+      <div class="p-4 w-full">
+        <div class="flex flex-col gap-2">
+          <h2 id="task-editable-title" class="text-2xl outline-none dark:focus:bg-gray-800 focus:bg-gray-200 p-1 rounded"
+              contenteditable="true" spellcheck="false" @blur="handleUpdateTask(columnFocus.id, taskFocus.id)">
+            {{ taskFocus.title }}</h2>
           <UTextarea
-              id="textarea-content"
-              v-model="commentForm.content"
-              color="gray"
-              placeholder="Enter content"
-              type="text"
-              variant="outline"
+              id="task-editable-description"
+              v-model="taskFocus.description"
+              class="w-full p-1"
+              placeholder="Add a description"
+              ui="{variant: {none: 'bg-gray-200 dark:bg-gray-800'} }"
+              variant="none"
+              @blur="handleUpdateTask(columnFocus.id, taskFocus.id)"
           />
         </div>
 
-        <div class="button-group w-100 mt-3">
-          <UButton
-              color="primary"
-              label="Comment"
-              type="submit"
-              variant="solid"
-          />
-        </div>
-      </form>
-      <div v-for="comment in taskFocus.comments">
-        <UCard>
-          <div class="flex gap-2">
-            <UAvatar></UAvatar>
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-1">
-                <p><span class="cursor-pointer">{{ comment.author.name }}</span> <span
-                    class="text-xs text-gray-300 cursor-default">at {{
-                    new Date(comment.created_at).toLocaleString()
-                  }}</span></p>
-                <UDropdown :items="commentItems" :popper="{ placement: 'right-start' }">
-                  <UButton
-                      color="gray"
-                      icon="i-heroicons-ellipsis-vertical"
-                      size="xs"
-                      variant="ghost"
-                      @click="commentFocus = comment"
-                  />
-                </UDropdown>
-              </div>
-              <p class="text-sm">{{ comment.content }}</p>
-            </div>
+        <form @submit.prevent="handleCreateComment(columnFocus.id, taskFocus.id)">
+          <div class="form-group mt-2">
+            <label for="textarea-description">Comment</label>
+            <UTextarea
+                id="textarea-content"
+                v-model="commentForm.content"
+                color="gray"
+                placeholder="Enter content"
+                type="text"
+                variant="outline"
+            />
           </div>
-        </UCard>
+
+          <div class="button-group w-100 mt-3">
+            <UButton
+                color="primary"
+                label="Comment"
+                type="submit"
+                variant="solid"
+            />
+          </div>
+        </form>
+        <div v-for="comment in taskFocus.comments">
+          <UCard>
+            <div class="flex gap-2">
+              <UAvatar></UAvatar>
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-1">
+                  <p><span class="cursor-pointer">{{ comment.author.name }}</span> <span
+                      class="text-xs text-gray-300 cursor-default">at {{
+                      new Date(comment.created_at).toLocaleString()
+                    }}</span></p>
+                  <UDropdown :items="commentItems" :popper="{ placement: 'right-start' }">
+                    <UButton
+                        color="gray"
+                        icon="i-heroicons-ellipsis-vertical"
+                        size="xs"
+                        variant="ghost"
+                        @click="commentFocus = comment"
+                    />
+                  </UDropdown>
+                </div>
+                <p class="text-sm">{{ comment.content }}</p>
+              </div>
+            </div>
+          </UCard>
+        </div>
+        <!-- COMMENTS -->
       </div>
-      <!-- COMMENTS -->
+      <div class="p-4 dark:bg-gray-800">
+        <UVerticalNavigation :links="taskEditNav" :ui="{ padding: 'px-5 py-3', width: 'w-[240px]' }" />
+      </div>
     </div>
   </UModal>
 </template>

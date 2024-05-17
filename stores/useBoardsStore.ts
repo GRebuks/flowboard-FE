@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import type {BoardData} from "~/types";
+import type {Board, BoardData} from "~/types";
 
 // type Board = {
 //     id: number;
@@ -10,7 +10,7 @@ import type {BoardData} from "~/types";
 
 type TaskCreate = {
     title: string;
-    description: string;
+    description: string | null;
 }
 
 type BoardCreate = {
@@ -27,8 +27,16 @@ type Comment = {
     content: string;
 }
 
+type FetchWithEtag = {
+    data: Board,
+    etag: string,
+}
+
 export const useBoardsStore = defineStore('boards', () => {
     const boards = ref<BoardData[] | null>(null);
+    const etag = ref<string | null>();
+    let i = 0;
+    let isFirstRequest = true;
 
     async function fetchBoards(workspace_id: any): Promise<BoardData[]> {
       const {data} = await useApiFetch(`/api/workspaces/${workspace_id}/boards`);
@@ -36,8 +44,22 @@ export const useBoardsStore = defineStore('boards', () => {
       return data.value as BoardData[];
     }
 
-    async function fetchBoard(workspace_id: any, board_id: any): Promise<BoardData> {
-        const {data} = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`);
+    async function fetchBoard(workspace_id: any, board_id: any): Promise<BoardData | null> {
+        const headers = etag.value ? { 'If-None-Match': etag.value } : {};
+        const {data, error, status} = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
+            headers
+        });
+
+        if (data?.value) {
+            if (i > 4) {
+                etag.value = data?.value.etag;
+            } else i++;
+        }
+
+        if (error.value) {
+            throw error.value;
+        }
+
         return data.value as BoardData;
     }
 

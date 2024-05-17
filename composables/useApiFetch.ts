@@ -1,6 +1,7 @@
 import type { UseFetchOptions } from '#imports'
+import {ref} from "vue";
 
-export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}) {
+export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}){
   let headers: any = {
     accept: "application/json",
     referer: "http://localhost:3000",
