@@ -1,14 +1,25 @@
 <script lang="ts" setup>
-import {ref, onMounted, onBeforeUnmount} from 'vue';
+import {onBeforeUnmount, onMounted, ref} from 'vue';
 import {useBoardsStore} from '~/stores/useBoardsStore';
 import {Container, Draggable} from 'vue3-smooth-dnd';
 import type {BoardData, DropResult} from "~/types";
+import {type Duration, format, isSameDay, sub} from 'date-fns'
+
+const ranges = [
+  { label: 'Next 30 days', duration: { days: -30 } },
+  { label: 'Next 14 days', duration: { days: -14 } },
+  { label: 'Next 7 days', duration: { days: -7 } },
+  { label: 'Last 7 days', duration: { days: 7 } },
+  { label: 'Last 14 days', duration: { days: 14 } },
+  { label: 'Last 30 days', duration: { days: 30 } },
+]
 
 const timeoutId = ref<ReturnType<typeof setTimeout> | null>(null);
 const isProcessing = ref<boolean>(false);
 
 const boardsStore = useBoardsStore();
 const route = useRoute();
+const toast = useToast()
 
 const board = ref<BoardData | null>(null);
 board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
@@ -34,6 +45,8 @@ const isColumnAddModalOpen = ref(false);
 
 const isTaskAddModalOpen = ref(false);
 const isTaskEditModalOpen = ref(false);
+
+const isParticipantsModalOpen = ref(false);
 
 const columnFocus = ref();
 const taskFocus = ref();
@@ -110,7 +123,7 @@ const taskEditNav = [{
   label: 'Dates',
   icon: 'i-heroicons-clock',
   click: () => {
-    console.log("Dates")
+    isParticipantsModalOpen.value = true;
   }
 }, {
   label: 'Colors',
@@ -119,6 +132,8 @@ const taskEditNav = [{
     console.log("Colors")
   }
 }]
+
+
 
 // REQUEST LOOPS //
 const fetchData = async () => {
@@ -192,7 +207,8 @@ async function handleUpdateTask(columnId: any, taskId: any) {
 
   const {error} = await boardsStore.updateTask(route.params.workspace_id, route.params.board_id, columnId, taskId, {
     title: titleText,
-    description: taskFocus.value.description
+    description: taskFocus.value.description,
+    color: taskFocus.value.color,
   });
   board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
 
@@ -205,13 +221,13 @@ async function handleUpdateTask(columnId: any, taskId: any) {
 
 async function handleDeleteTask(columnId: any, taskId: any) {
   await boardsStore.deleteTask(route.params.workspace_id, route.params.board_id, columnId, taskId);
-  board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
+  // board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
 }
 
 // COMMENTS
 async function handleCreateComment(columnId: any, taskId: any) {
   const {error} = await boardsStore.createComment(route.params.workspace_id, route.params.board_id, columnId, taskId, commentForm.value);
-  board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
+  // board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
 
   if (error.value) {
     errors.value = error.value.data.errors;
@@ -263,7 +279,7 @@ async function handleColumnDrop(dropResult: any) {
           board.value.data.columns = columns;
         }
 
-        await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board);
+        await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
       }
     }
   }
@@ -298,7 +314,7 @@ async function handleTaskDrop(columnActive: any, dropResult: DropResult) {
         boardColumnActive.tasks = tasks;
       }
 
-      await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board);
+      await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
     }
   } else if (dropResult.addedIndex !== null) {
     // Task is moved from one column to another
@@ -342,13 +358,13 @@ async function handleTaskDrop(columnActive: any, dropResult: DropResult) {
       boardColumnActive.tasks = columnActive.tasks;
     }
 
-    await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board);
+    await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
   }
 }
 
 async function updateTask(columnId: any, task: any) {
   const {error} = await boardsStore.updateTask(route.params.workspace_id, route.params.board_id, columnId, task.id, task);
-  board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
+  // board.value = await boardsStore.fetchBoard(route.params.workspace_id, route.params.board_id);
 
   if (error.value) {
     errors.value = error.value.data.errors;
@@ -363,6 +379,58 @@ onMounted(() => {
 onBeforeUnmount(() => {
   stopRequestLoop();
 });
+
+const dueDateSelected = ref({ start: sub(new Date(), { days: 14 }), end: new Date() })
+
+function isRangeSelected (duration: Duration) {
+  return isSameDay(dueDateSelected.value.start, sub(new Date(), duration)) && isSameDay(dueDateSelected.value.end, new Date())
+}
+
+function selectRange (duration: Duration) {
+  dueDateSelected.value = { start: sub(new Date(), duration), end: new Date() }
+}
+
+const onSelect = (option: any) => {
+  isParticipantsModalOpen.value = false;
+  console.log(option)
+  toast.add({title: option.label + " has been added", icon: "i-heroicons-check-badge", color:"primary"});
+}
+
+const searchAllExceptLoggedIn = async (query: string) => {
+  const response = await useApiFetch(`/api/users/search?${query}`);
+  return response.data;
+};
+
+const searchWorkspaceParticipants = async (query: string) => {
+  const workspaceId = route.params.workspace_id;
+  const response = await useApiFetch(`/api/workspaces/${workspaceId}/participants?${query}`);
+  return response.data;
+};
+
+const searchWorkspaceParticipantsExcludingLoggedIn = async (query: string) => {
+  const workspaceId = route.params.workspace_id;
+  const response = await useApiFetch(`/api/workspaces/${workspaceId}/search-excluding-logged-in?${query}`);
+  return response.data;
+};
+
+const closeParticipantModal = (event) => {
+  event.stopPropagation();
+  isParticipantsModalOpen.value = false;
+};
+
+const participantGroups = ref([]);
+
+const openParticipantsModal = async () => {
+  isParticipantsModalOpen.value = true;
+  const participants = await searchWorkspaceParticipants('');
+  participantGroups.value = participants.value.data.map((user: any) => ({ id: user.id, label: user.username, suffix: user.email, icon: "i-heroicons-user-plus-16-solid"}));
+}
+
+const handleColorChange = async (color: {name: string, hex: string}) => {
+  taskFocus.value.color = color.name;
+  await handleUpdateTask(columnFocus.value.id, taskFocus.value.id);
+  console.log(color.name)
+}
 
 </script>
 
@@ -409,7 +477,7 @@ onBeforeUnmount(() => {
               @drop="handleTaskDrop(column, $event)">
             <Draggable v-for="task in column.tasks" @mousedown="taskFocus = task; columnFocus = column">
               <UCard :ui="{header: { background: `bg-${task.color}-500` }, body: { padding: 'sm:p-4' } }"
-                     class="w-[250px] cursor-pointer">
+                     class="w-[250px] cursor-pointer overflow-hidden">
                 <template v-if="task.color" #header></template>
                 <div class="flex flex-row justify-between items-center">
                   <p class="text-lg">{{ task.title }}</p>
@@ -623,13 +691,63 @@ onBeforeUnmount(() => {
             </div>
           </UCard>
         </div>
-        <!-- COMMENTS -->
       </div>
-      <div class="p-4 dark:bg-gray-800">
+      <div class="p-4 dark:bg-gray-800 px-5 py-3">
+        <div class="flex w-[240px] gap-1 flex-col">
+          <UPopover :popper="{ placement: 'bottom-start' }">
+            <UButton icon="i-heroicons-calendar-days-20-solid" class="w-full">
+              {{ format(dueDateSelected.start, 'd MMM, yyy') }} - {{ format(dueDateSelected.end, 'd MMM, yyy') }}
+            </UButton>
+            <template #panel="{ close }">
+              <div class="flex items-center sm:divide-x divide-gray-200 dark:divide-gray-800">
+                <div class="hidden sm:flex flex-col py-4">
+                  <UButton
+                      v-for="(range, index) in ranges"
+                      :key="index"
+                      :label="range.label"
+                      color="gray"
+                      variant="ghost"
+                      class="rounded-none px-6"
+                      :class="[isRangeSelected(range.duration) ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50']"
+                      truncate
+                      @click="selectRange(range.duration)"
+                  />
+                </div>
+
+                <DatePicker v-model="dueDateSelected" @close="close" />
+              </div>
+            </template>
+          </UPopover>
+          <UPopover :popper="{ placement: 'bottom-start' }">
+            <UButton icon="i-heroicons-paint-brush-16-solid" class="w-full">
+              Color
+            </UButton>
+            <template #panel="{ close }">
+              <div class="flex items-center sm:divide-x divide-gray-200 dark:divide-gray-800">
+                <SingleColorPicker @color="handleColorChange" />
+
+              </div>
+            </template>
+          </UPopover>
+
+          <UButton icon="i-heroicons-user-group-16-solid" class="w-full" @click="openParticipantsModal">
+            Participants
+          </UButton>
+          <UModal v-model="isParticipantsModalOpen" @close="closeParticipantModal">
+            <div class="p-6">
+              <p>Add a new user</p>
+              <UCommandPalette :groups="[{ key: 'people', commands: participantGroups }]" :autoselect="false" @update:model-value="onSelect" nullable />
+            </div>
+          </UModal>
+
+        </div>
+        <!--
         <UVerticalNavigation :links="taskEditNav" :ui="{ padding: 'px-5 py-3', width: 'w-[240px]' }" />
+        -->
       </div>
     </div>
   </UModal>
+
 </template>
 
 <style scoped>

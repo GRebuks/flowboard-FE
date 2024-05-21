@@ -7,6 +7,8 @@ definePageMeta({
   layout: 'profile',
 })
 
+const toast = useToast()
+
 const isBoardDeleteModalOpen = ref(false);
 
 const boardsStore = useBoardsStore();
@@ -31,11 +33,62 @@ async function handleDeleteBoard() {
   navigateTo('/workspaces/');
 }
 
+const searchAllExceptLoggedIn = async (query: string) => {
+  const response = await useApiFetch(`/api/users/search?${query}`);
+  return response.data;
+};
+
+const searchWorkspaceParticipants = async (query: string) => {
+  const workspaceId = route.params.workspace_id;
+  const response = await useApiFetch(`/api/workspaces/${workspaceId}/participants?${query}`);
+  return response.data;
+};
+
+const searchWorkspaceParticipantsExcludingLoggedIn = async (query: string) => {
+  const workspaceId = route.params.workspace_id;
+  const response = await useApiFetch(`/api/workspaces/${workspaceId}/search-excluding-logged-in?${query}`);
+  return response.data;
+};
+
+const groups = [{
+  key: 'users',
+  label: (q: string) => q && `Users matching “${q}”...`,
+  search: async (q: string) => {
+    if (!q) {
+      return []
+    }
+    const queryParams = new URLSearchParams({ q });
+    const users = await searchAllExceptLoggedIn(queryParams.toString())
+    //const users = await searchWorkspaceParticipants(queryParams.toString());
+    //prefix: user.role.name
+    return users.value.data.map(user => ({ id: user.id, label: user.username, suffix: user.email, icon: "i-heroicons-user-plus-16-solid"}))
+  }
+}]
+
+const onSelect = (option: any) => {
+  console.log(option)
+  toast.add({title: option.label + " has been added", icon: "i-heroicons-check-badge", color:"primary"});
+}
+
+const isUserAddModalOpen = ref(false);
+
+const closeModal = (event) => {
+  event.stopPropagation();
+  isModalOpen.value = false;
+};
+
 </script>
 
 <template>
 <!--  <main>-->
-    <h1 class="text-2xl">Board No. {{ $route.params.board_id }} - '{{ board.data.title }}'</h1>
+  <div>
+    <h1 class="text-2xl">Board No. {{ $route.params.board_id }} - '{{ board?.data.title }}'</h1>
+
+  </div>
+
+  <div class="command-palette-test">
+    <UCommandPalette :groups="groups" :autoselect="false" @update:model-value="onSelect" />
+  </div>
 
     <!-- Board deletion -->
     <UButton
@@ -78,6 +131,13 @@ async function handleDeleteBoard() {
         </template>
       </UTabs>
     </div>
+  <UButton @click="isUserAddModalOpen = true"></UButton>
+  <UModal v-model="isUserAddModalOpen" @click="closeModal">
+    <div class="p-6" @click.stop>
+      <p>Add a new user</p>
+      <UCommandPalette :groups="groups" :autoselect="false" @update:model-value="onSelect" />
+    </div>
+  </UModal>
 <!--  </main>-->
 </template>
 <style scoped>

@@ -11,6 +11,7 @@ import type {Board, BoardData} from "~/types";
 type TaskCreate = {
     title: string;
     description: string | null;
+    color: string | null;
 }
 
 type BoardCreate = {
@@ -156,7 +157,7 @@ export const useBoardsStore = defineStore('boards', () => {
             method: 'POST',
             body: info,
         });
-        await fetchBoards(workspace_id);
+        //await fetchBoards(workspace_id);
         return board;
     }
 
@@ -165,7 +166,7 @@ export const useBoardsStore = defineStore('boards', () => {
             method: 'POST',
             body: info,
         });
-        await fetchBoards(workspace_id);
+        //await fetchBoards(workspace_id);
         return board;
     }
 

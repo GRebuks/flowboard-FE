@@ -42,10 +42,22 @@ async function handleLogout() {
                 @click="isDark = !isDark"
             />
 
+            <UPopover :popper="{ placement: 'bottom-start' }">
+              <UButton
+                  icon="i-heroicons-paint-brush-16-solid"
+              ></UButton>
+              <template #panel="{ close }">
+                <div class="flex items-center sm:divide-x divide-gray-200 dark:divide-gray-800">
+                  <ColorPicker />
+                </div>
+              </template>
+            </UPopover>
+
             <template #fallback>
               <div class="w-8 h-8" />
             </template>
           </ClientOnly>
+
           <UAvatar
               chip-color="primary"
               chip-text=""
@@ -60,6 +72,7 @@ async function handleLogout() {
   </header>
   <h1 class="text-center mt-3" v-if="auth?.user">Hi, {{auth.user.username}} 👋</h1>
   <slot />
+  <UNotifications />
 </template>
 
 <style>

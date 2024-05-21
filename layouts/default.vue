@@ -62,6 +62,17 @@ async function handleLogout() {
                   @click="isDark = !isDark"
               />
 
+              <UPopover :popper="{ placement: 'bottom-start' }">
+                <UButton
+                    icon="i-heroicons-paint-brush-16-solid"
+                ></UButton>
+                <template #panel="{ close }">
+                  <div class="flex items-center sm:divide-x divide-gray-200 dark:divide-gray-800">
+                    <ColorPicker />
+                  </div>
+                </template>
+              </UPopover>
+
               <template #fallback>
                 <div class="w-8 h-8" />
               </template>
@@ -79,4 +90,5 @@ async function handleLogout() {
     </div>
   </header>
   <slot />
+  <UNotifications />
 </template>
