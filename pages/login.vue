@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useAuthStore } from "~/stores/useAuthStore";
 import { definePageMeta } from '#imports';
+import {z} from "zod";
 
 definePageMeta({
   layout: 'auth',
@@ -16,29 +17,38 @@ const errors = ref();
 
 const auth = useAuthStore();
 
-async function handleLogin() {
+async function handleNewLogin(event: FormSubmitEvent<any>) {
   if (auth.isLoggedIn) {
     return navigateTo("/workspaces");
   }
 
-  const {error} = await auth.login(form.value);
-  
-  if (!error.value) {
-    return navigateTo("/workspaces");
-  } else {
+  const {error} = await auth.login(event.data);
+
+  if (error) {
     errors.value = error.value.data.errors;
+  } else {
+    return navigateTo("/workspaces");
   }
 }
+
+const schema = z.object({
+  email: z.string().email('Invalid e-mail address'),
+  password: z.string(),
+});
+
+const state = reactive({
+  email: undefined,
+  password: undefined,
+});
 
 </script>
 
 <template>
   <main>
     <h3 class="text-center mt-[10px]">Login</h3>
-    <form @submit.prevent="handleLogin" class="flex flex-col items-center max-w-[350px] w-full ml-auto mr-auto mt-[20px]">
-
-      <div v-if="errors" class="bg-red-400/50 dark:bg-red-950/50 border border-red-700 dark:border-red-700 w-full p-8 m-2 rounded-lg">
-        <ul class="list-disc">
+    <UForm :schema="schema" :state="state" class="space-y-4 w-[20%] m-auto" @submit="handleNewLogin">
+      <div v-if="errors" class="bg-red-300/70 dark:bg-red-950/50 border border-red-300 dark:border-red-700 w-full p-8 m-2 rounded-lg">
+        <ul class="color-gray-200 text-center">
           <div v-for="error in errors" class="" role="alert">
             <div v-for="message in error">
               <li>{{ message }}</li>
@@ -46,48 +56,27 @@ async function handleLogin() {
           </div>
         </ul>
       </div>
-
-      <div class="w-60">
-        <label for="input-email">Email address</label>
-        <UInput
-            :ui="{rounded: 'rounded-lg'}"
-            color="primary"
-            variant="outline"
-            size="l"
-            type="email"
-            id="input-email"
-            aria-describedby="emailHelp"
-            placeholder="Enter email"
-            v-model="form.email"
-        />
-      </div>
-      <br>
-      <div class="w-60">
-        <label for="input-password">Password</label>
-        <UInput
-            :ui="{rounded: 'rounded-lg'}"
-            color="primary"
-            variant="outline"
-            size="l"
-            type="password"
-            id="input-password"
-            placeholder="Password"
-            v-model="form.password"
-        />
-      </div>
+      <UFormGroup label="E-mail" name="email" eager-validation>
+        <UInput v-model="state.email" placeholder="test@example.com" />
+      </UFormGroup>
+      <UFormGroup label="Password" name="password" eager-validation>
+        <UInput v-model="state.password" placeholder="Password"  type="password"/>
+      </UFormGroup>
       <div class="text-center mt-[20px] w-full">
         <UButton
-          size="xl"
-          type="submit"
-        >Login</UButton>
+            size="xl"
+            type="submit"
+            label="Login"
+        />
       </div>
       <UButton
           color="primary"
           variant="ghost"
           label="Don't have an account?"
-          to="/register"
+          to="/login"
+          class="justify-center w-full"
       />
-    </form>
+    </UForm>
   </main>
 </template>
 

@@ -144,29 +144,31 @@ function getTasksForDate(date: any) {
       </div>
       <div v-for="blank in blanks" :key="blank" class="text-center"></div>
       <div v-for="date in daysInMonth" :key="date" class="day" @click="selectDate(date)">
-        <UCard :ui="{ header: { padding: 'sm:py-2 sm:px-3' } }" class="min-h-[250px]">
+        <UCard :ui="{ header: { padding: 'sm:py-2 sm:px-3' }, footer: { padding: 'sm:py-3 sm:px-2' } }" class="min-h-[250px]">
           <template #header>
             <h2 class="text-2xl">{{ date }}</h2>
           </template>
-          <div v-if="hasTaskOnDate(date)" class="flex flex-col gap-3">
-            <div v-for="task in getTasksForDate(date)">
-              <UCard class="cursor-pointer">
-                <div class="flex flex-row justify-between items-center">
-                  <p class="text-sm">{{ task.title }}</p>
-                  <UDropdown :items="taskItems" :popper="{ placement: 'right-start' }" >
-                    <UButton
-                        color="gray"
-                        variant="ghost"
-                        icon="i-heroicons-bars-3-20-solid"
-                        @click="columnFocus = task.board_column_id, taskFocus = task"
-                    />
-                  </UDropdown>
-                </div>
-                <br>
-                <UBadge color="red" variant="solid">Svarīgs</UBadge>
-              </UCard>
+          <template #footer>
+            <div v-if="hasTaskOnDate(date)" class="flex flex-col gap-3 p-1 overflow-y-auto max-h-[180px]">
+              <div v-for="task in getTasksForDate(date)">
+                <UCard :ui="{body: { padding: 'px-2 py-3 sm:p-3' }, header: { background: `bg-${task.color}-500` } }" class="cursor-pointer overflow-hidden">
+                  <template v-if="task.color" #header></template>
+                  <div class="flex flex-row justify-between items-center">
+                    <p class="text-sm">{{ task.title }}</p>
+                    <UDropdown :items="taskItems" :popper="{ placement: 'right-start' }" >
+                      <UButton
+                          color="gray"
+                          variant="ghost"
+                          icon="i-heroicons-bars-3-20-solid"
+                          @click="columnFocus = task.board_column_id, taskFocus = task"
+                      />
+                    </UDropdown>
+                  </div>
+                  <!--                <UBadge color="red" variant="solid">Svarīgs</UBadge>-->
+                </UCard>
+              </div>
             </div>
-          </div>
+          </template>
         </UCard>
       </div>
     </div>

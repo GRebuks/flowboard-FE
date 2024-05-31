@@ -48,8 +48,10 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'POST',
         body: credentials
       });
-    
-      await fetchUser();
+
+      if(!login.error.value) {
+          await fetchUser();
+      }
 
       return login;
     }
@@ -61,8 +63,10 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'POST',
         body: info,
       });
-    
-      await fetchUser();
+
+        if(!register.error.value) {
+            await fetchUser();
+        }
 
       return register;
     }

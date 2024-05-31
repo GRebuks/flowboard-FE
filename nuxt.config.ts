@@ -1,6 +1,7 @@
 import { ColorScheme } from "#build/components";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
+// @ts-ignore
 export default defineNuxtConfig({
   devtools: {
     enabled: true,

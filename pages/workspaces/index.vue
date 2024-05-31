@@ -193,11 +193,11 @@ const colorList = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
                         }
 
                       }"
-                      class="w-[200px] text-gray-700 dark:text-gray-200 group"
+                      class="w-[200px] text-gray-700 dark:text-gray-200 group rounded-lg overflow-hidden"
                       @click="boardFocus=board.id"
                   >
                     <div class="flex justify-between items-center">
-                      <p class="text-xl cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-full" @click="navigateTo(`/workspaces/${ item.id }/boards/${board.id}`)">{{ board.title }}</p>
+                      <p class="text-xl cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-full text-white" @click="navigateTo(`/workspaces/${ item.id }/boards/${board.id}`)">{{ board.title }}</p>
                       <div class="gap-3 items-center hidden group-hover:flex">
                         <UButton
                             color="red"
@@ -262,6 +262,7 @@ const colorList = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
       <br>
       <br>
       <UDivider
+          v-if="participatedWorkspaces.length > 0"
           label="Participated workspaces"
           size="sm"
       />
@@ -376,6 +377,7 @@ const colorList = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
       </UModal>
       <UModal v-model="isBoardAddModalOpen">
         <div class="p-4">
+          <h2 class="text-center text-2xl">Create new board</h2>
           <form @submit.prevent="handleCreateBoard(workspaceFocus)">
             <div class="form-group">
               <label for="input-title">Title</label>
@@ -399,13 +401,15 @@ const colorList = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
                   v-model="boardForm.description"
               />
             </div>
-            <p class="text-center" id="color-output">Display color</p>
-            <div class="grid grid-cols-2 md:grid-cols-5 w-[100px] gap-1 m-auto">
+            <div class="grid grid-cols-2 md:grid-cols-5 w-full gap-1 m-auto mt-2">
               <div v-for="(color, index) in colorList" :key="index"
-                   :class="[color, 'h-4 w-4 rounded-full cursor-pointer']"
+                   :class="[color, 'h-8 rounded-xl cursor-pointer']"
                    @click="updateColor(color)"></div>
             </div>
-            <p>Selected Color:</p> <div :class="[boardForm.color, 'text-white px-2 py-1 rounded w-full h-[12px]']"></div>
+            <div v-if="boardForm.color">
+              <p>Selected Color:</p>
+              <div :class="[boardForm.color, 'text-white px-2 py-1 rounded w-full h-[12px]']"></div>
+            </div>
             <div class="button-group w-100 mt-3">
               <UButton
                   color="primary"
@@ -440,6 +444,7 @@ const colorList = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
 
       <UModal v-model="isCreateWorkspaceModalOpen">
         <div class="p-4">
+          <h2 class="text-center text-2xl">Create a new workspace</h2>
           <form @submit.prevent="handleCreateWorkspace">
             <div class="form-group">
               <label for="input-title">Title</label>
