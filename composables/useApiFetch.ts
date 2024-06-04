@@ -21,14 +21,15 @@ export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}){
       ...useRequestHeaders(["cookie"])
     }
   }
-
-  return useFetch("http://localhost:80" + path, {
+  const fetchOptions = {
     credentials: 'include',
     watch: false,
     ...options,
     headers: {
       ...headers,
-      ...options?.headers
-    }
-  });
+      ...options?.headers,
+    },
+  };
+
+  return useFetch("http://localhost:80" + path, fetchOptions);
 }

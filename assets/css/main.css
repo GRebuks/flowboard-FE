@@ -6,7 +6,9 @@ body {
   font-family: 'M PLUS Rounded 1c', sans-serif !important;
   margin: 0;
     height: 100%;
-  @apply bg-white;
+  /*@apply bg-white;*/
+
+  @apply bg-gray-50;
   @apply dark:bg-gray-950;
 
   @apply text-black;

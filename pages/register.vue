@@ -45,8 +45,9 @@ const schema = z.object({
   email: z.string().email('Invalid e-mail address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   password_confirmation: z.string(),
-}).refine(data => data.password === data.password_confirmation, {
-  message: 'Passwords do not match',
+}).refine((v) => v.password === v.password_confirmation, {
+  message: 'Passwords must match',
+  path: ['password_confirmation']
 });
 
 const state = reactive({
@@ -54,7 +55,7 @@ const state = reactive({
   email: undefined,
   password: undefined,
   password_confirmation: undefined,
-})
+});
 
 </script>
 

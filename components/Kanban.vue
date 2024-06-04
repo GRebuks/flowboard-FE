@@ -6,12 +6,12 @@ import type {BoardData, DropResult} from "~/types";
 import {type Duration, format, isSameDay, sub} from 'date-fns'
 
 const ranges = [
-  { label: 'Next 30 days', duration: { days: -30 } },
-  { label: 'Next 14 days', duration: { days: -14 } },
-  { label: 'Next 7 days', duration: { days: -7 } },
-  { label: 'Last 7 days', duration: { days: 7 } },
-  { label: 'Last 14 days', duration: { days: 14 } },
   { label: 'Last 30 days', duration: { days: 30 } },
+  { label: 'Last 14 days', duration: { days: 14 } },
+  { label: 'Last 7 days', duration: { days: 7 } },
+  { label: 'Next 7 days', duration: { days: -7 } },
+  { label: 'Next 14 days', duration: { days: -14 } },
+  { label: 'Next 30 days', duration: { days: -30 } },
 ]
 
 const timeoutId = ref<ReturnType<typeof setTimeout> | null>(null);
@@ -589,8 +589,8 @@ const handleColorChange = async (color: {name: string, hex: string}) => {
   <!-- Task creation modal -->
   <UModal v-model="isTaskAddModalOpen">
     <div class="p-4">
+      <h2 class="text-center text-2xl">Add a task</h2>
       <form @submit.prevent="handleCreateTask(columnFocus.id)">
-        <h2>Add task...</h2>
         <div class="form-group">
           <label for="input-title">Title</label>
           <UInput
@@ -611,6 +611,7 @@ const handleColorChange = async (color: {name: string, hex: string}) => {
               placeholder="Enter description"
               type="text"
               variant="outline"
+              spellcheck="false"
           />
         </div>
         <div class="button-group w-100 mt-3">
@@ -666,10 +667,13 @@ const handleColorChange = async (color: {name: string, hex: string}) => {
             />
           </div>
         </form>
-        <div v-for="comment in taskFocus.comments">
-          <UCard>
+        <div class="flex flex-col gap-3 mt-3">
+          <UCard v-for="comment in taskFocus.comments">
             <div class="flex gap-2">
-              <UAvatar></UAvatar>
+              <UAvatar
+                  src="https://avatars.githubusercontent.com/u/85909171?v=4"
+                  alt="Avatar"
+              />
               <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-1">
                   <p><span class="cursor-pointer">{{ comment.author.name }}</span> <span
@@ -735,7 +739,7 @@ const handleColorChange = async (color: {name: string, hex: string}) => {
           </UButton>
           <UModal v-model="isParticipantsModalOpen" @close="closeParticipantModal">
             <div class="p-6">
-              <p>Add a new user</p>
+              <h2 class="text-center text-2xl">Assign a participant</h2>
               <UCommandPalette :groups="[{ key: 'people', commands: participantGroups }]" :autoselect="false" @update:model-value="onSelect" nullable />
             </div>
           </UModal>

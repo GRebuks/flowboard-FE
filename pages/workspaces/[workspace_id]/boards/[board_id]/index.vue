@@ -86,10 +86,6 @@ const closeModal = (event) => {
 
   </div>
 
-  <div class="command-palette-test">
-    <UCommandPalette :groups="groups" :autoselect="false" @update:model-value="onSelect" />
-  </div>
-
     <!-- Board deletion -->
     <UButton
         color="red"
