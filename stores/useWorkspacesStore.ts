@@ -1,5 +1,5 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
+import {defineStore} from "pinia";
+import {ref} from "vue";
 import type {Workspace} from "~/types";
 //
 // type Workspace = {
@@ -11,6 +11,13 @@ import type {Workspace} from "~/types";
 type WorkspaceCreate = {
     title: string;
     description: string;
+}
+
+type Participant = {
+    icon: string;
+    id: number;
+    label: string;
+    suffix: string;
 }
 
 export const useWorkspacesStore = defineStore('workspaces', () => {
@@ -46,5 +53,19 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
       workspaces.value = null;
     }
 
-    return { fetchWorkspaces, fetchUserWorkspaces, workspaces, clearWorkspaces, createWorkspace, deleteWorkspace }
+    async function addParticipant(workspace_id: any, info: Participant) {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/participants/add`, {
+            method: 'POST',
+            body: { 'user_id': info.id },
+        });
+    }
+
+    async function removeParticipant(workspace_id: any, info: Participant) {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/participants/remove`, {
+            method: 'POST',
+            body: { 'user_id': info.id },
+        });
+    }
+
+    return { fetchWorkspaces, fetchUserWorkspaces, workspaces, clearWorkspaces, createWorkspace, deleteWorkspace, addParticipant, removeParticipant }
   })

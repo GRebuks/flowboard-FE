@@ -1,5 +1,5 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
+import {defineStore} from "pinia";
+import {ref} from "vue";
 import type {Board, BoardData} from "~/types";
 
 // type Board = {
@@ -153,22 +153,33 @@ export const useBoardsStore = defineStore('boards', () => {
     }
 
     async function saveBoard(workspace_id: any, board_id: any, info: any) {
-        const board = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/save`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/save`, {
             method: 'POST',
             body: info,
         });
-        //await fetchBoards(workspace_id);
-        return board;
     }
 
     async function reorderTask(workspace_id: any, board_id: any, info: any) {
-        const board = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/reorder`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/reorder`, {
             method: 'POST',
             body: info,
         });
-        //await fetchBoards(workspace_id);
-        return board;
     }
+
+    async function addTaskParticipant(task_id: any, info: any) {
+        return await useApiFetch(`/api/tasks/${task_id}/participants/add`, {
+            method: 'POST',
+            body: { 'user_id': info.id },
+        })
+    }
+
+    async function removeTaskParticipant(task_id: any, info: any) {
+        return await useApiFetch(`/api/tasks/${task_id}/participants/remove`, {
+            method: 'POST',
+            body: { 'user_id': info.id },
+        })
+    }
+
 
     async function clearBoards() {
       boards.value = null;
@@ -180,7 +191,7 @@ export const useBoardsStore = defineStore('boards', () => {
         createColumn, deleteColumn,
         createTask, updateTask, deleteTask, reorderTask,
         createComment, updateComment, deleteComment,
-
+        addTaskParticipant, removeTaskParticipant,
         boards,
     }
   })

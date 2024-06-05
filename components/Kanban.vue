@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {onBeforeUnmount, onMounted, ref} from 'vue';
 import {useBoardsStore} from '~/stores/useBoardsStore';
+import {useWorkspacesStore} from '~/stores/useWorkspacesStore';
 import {Container, Draggable} from 'vue3-smooth-dnd';
 import type {BoardData, DropResult} from "~/types";
 import {type Duration, format, isSameDay, sub} from 'date-fns'
@@ -18,6 +19,7 @@ const timeoutId = ref<ReturnType<typeof setTimeout> | null>(null);
 const isProcessing = ref<boolean>(false);
 
 const boardsStore = useBoardsStore();
+const workspacesStore = useWorkspacesStore();
 const route = useRoute();
 const toast = useToast()
 
@@ -392,7 +394,7 @@ function selectRange (duration: Duration) {
 
 const onSelect = (option: any) => {
   isParticipantsModalOpen.value = false;
-  console.log(option)
+  boardsStore.addTaskParticipant(taskFocus.value.id, option);
   toast.add({title: option.label + " has been added", icon: "i-heroicons-check-badge", color:"primary"});
 }
 

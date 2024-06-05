@@ -46,6 +46,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useAppConfig } from '#app'
+import { useAuthStore } from '~/stores/useAuthStore';
 
 const primaryColors = ref([
   { name: 'blue' },
@@ -72,7 +73,7 @@ const grayColors = ref([
   { name: 'smoky' },
   { name: 'moss' },
   { name: 'chestnut' },
-])
+]);
 
 const betaColors = ref([
   { name: 'bluish-dark' },
@@ -81,17 +82,20 @@ const betaColors = ref([
   { name: 'dark-red' },
   { name: 'dark-green' },
   { name: 'dark-blue' },
-])
+]);
 
 // Access and update the app config
-const appConfig = useAppConfig()
+const appConfig = useAppConfig();
+const auth = useAuthStore();
 
 const updatePrimaryColor = (color) => {
-  appConfig.ui.primary = color.name
+  auth.setUserPreferences({primary: color.name});
+  appConfig.ui.primary = color.name;
 }
 
 const updateGrayColor = (color) => {
-  appConfig.ui.gray = color.name
+  auth.setUserPreferences({secondary: color.name});
+  appConfig.ui.gray = color.name;
 }
 </script>
 

@@ -1,4 +1,17 @@
 <script lang="ts" setup>
+import { useAuthStore } from '~/stores/useAuthStore';
+import {onMounted} from "vue";
+
+const auth = useAuthStore();
+
+onMounted(() => {
+  if (process.client) {
+    const appConfig = useAppConfig();
+    appConfig.ui.primary = localStorage.getItem('primary') || 'mariner';
+    appConfig.ui.gray = localStorage.getItem('secondary') || 'slate';
+  }
+});
+
 const colorMode = useColorMode();
 const isDark = computed({
   get () {
@@ -8,9 +21,6 @@ const isDark = computed({
     colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
   }
 })
-
-import { useAuthStore } from '~/stores/useAuthStore';
-const auth = useAuthStore();
 
 async function handleLogout() {
   await auth.logout();

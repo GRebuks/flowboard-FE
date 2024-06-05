@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import { useWorkspacesStore } from "~/stores/useWorkspacesStore";
 import { useBoardsStore } from "~/stores/useBoardsStore";
 import { ref } from "vue";
+import {info} from "sass";
+import {useAppConfig} from "#app";
 
 type User = {
     id: number;
@@ -33,6 +35,8 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null;
       await workspacesStore.clearWorkspaces();
       await BoardsStore.clearBoards();
+      localStorage.removeItem('primary');
+      localStorage.removeItem('secondary');
       navigateTo("/");
     }
 
@@ -51,6 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if(!login.error.value) {
           await fetchUser();
+          await getUserPreferences();
       }
 
       return login;
@@ -71,5 +76,31 @@ export const useAuthStore = defineStore('auth', () => {
       return register;
     }
 
-    return { user, login, isLoggedIn, fetchUser, logout, register }
+    async function getUserPreferences() {
+        const {data} = await useApiFetch(`/api/user/preferences`, {
+            method: 'GET',
+        });
+        console.log(data.value.data)
+        updateUserPreferences(data.value.data);
+        return data;
+    }
+
+    async function setUserPreferences(info: any) {
+        const {data} = await useApiFetch(`/api/user/preferences`, {
+            method: 'POST',
+            body: info,
+        });
+        return data;
+    }
+
+    function updateUserPreferences(data: any) {
+        const appConfig = useAppConfig();
+        console.log(data)
+        appConfig.ui.primary = data.primary? data.primary : 'mariner';
+        appConfig.ui.gray = data.secondary? data.secondary : 'slate';
+        localStorage.setItem('primary', appConfig.ui.primary);
+        localStorage.setItem('secondary', appConfig.ui.gray);
+    }
+
+    return { user, login, isLoggedIn, fetchUser, logout, register, getUserPreferences, setUserPreferences }
   })

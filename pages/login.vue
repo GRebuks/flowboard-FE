@@ -24,7 +24,7 @@ async function handleNewLogin(event: FormSubmitEvent<any>) {
 
   const {error} = await auth.login(event.data);
 
-  if (error) {
+  if (error?.value) {
     errors.value = error.value.data.errors;
   } else {
     return navigateTo("/workspaces");
