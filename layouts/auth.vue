@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import { useAuthStore } from '~/stores/useAuthStore'
 const colorMode = useColorMode();
+const auth = useAuthStore();
 const isDark = computed({
   get () {
     return colorMode.value === 'dark'
@@ -23,7 +25,7 @@ const isDark = computed({
       @click="isDark = !isDark"
     />
 
-    <UPopover :popper="{ placement: 'bottom-start' }">
+    <UPopover v-if="auth.isLoggedIn" :popper="{ placement: 'bottom-start' }">
       <UButton
           icon="i-heroicons-paint-brush-16-solid"
       ></UButton>

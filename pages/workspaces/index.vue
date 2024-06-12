@@ -294,7 +294,7 @@ const colorList = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
                         }
 
                       }"
-                        class="w-[200px] text-gray-700 dark:text-gray-200 group"
+                        class="w-[200px] text-gray-700 dark:text-gray-200 group overflow-hidden"
                         @click="boardFocus=board.id"
                     >
                       <div class="flex justify-between items-center">

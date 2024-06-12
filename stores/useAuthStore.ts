@@ -37,6 +37,9 @@ export const useAuthStore = defineStore('auth', () => {
       await BoardsStore.clearBoards();
       localStorage.removeItem('primary');
       localStorage.removeItem('secondary');
+      const appConfig = useAppConfig();
+      appConfig.ui.primary = 'mariner';
+      appConfig.ui.gray = 'slate';
       navigateTo("/");
     }
 

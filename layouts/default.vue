@@ -6,9 +6,11 @@ const auth = useAuthStore();
 
 onMounted(() => {
   if (process.client) {
-    const appConfig = useAppConfig();
-    appConfig.ui.primary = localStorage.getItem('primary') || 'mariner';
-    appConfig.ui.gray = localStorage.getItem('secondary') || 'slate';
+    if (auth.isLoggedIn) {
+      const appConfig = useAppConfig();
+      appConfig.ui.primary = localStorage.getItem('primary') || 'mariner';
+      appConfig.ui.gray = localStorage.getItem('secondary') || 'slate';
+    }
   }
 });
 

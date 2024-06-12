@@ -73,7 +73,7 @@ const state = reactive({
           color="primary"
           variant="ghost"
           label="Don't have an account?"
-          to="/login"
+          to="/register"
           class="justify-center w-full"
       />
     </UForm>

@@ -83,12 +83,11 @@ const openUserRemoveModal = async () => {
 }
 
 const onParticipantRemoveSelect = (option: any) => {
-  console.log(option)
+  workspacesStore.removeParticipant(route.params.workspace_id, option);
   toast.add({title: option.label + " has been removed", icon: "i-heroicons-check-badge", color:"primary"});
 }
 
 const onSelect = (option: any) => {
-  console.log(option)
   workspacesStore.addParticipant(route.params.workspace_id, option);
   toast.add({title: option.label + " has been added", icon: "i-heroicons-check-badge", color:"primary"});
 }
@@ -133,7 +132,7 @@ const closeModal = (event) => {
     <!-- Board deletion -->
     <UModal v-model="isBoardDeleteModalOpen">
       <div class="p-6">
-        <p>Are you sure you want to delete this workspace?</p>
+        <p>Are you sure you want to delete this board?</p>
         <p>All data will be deleted permanently!</p>
         <div class="flex justify-center gap-8 p-2">
           <UButton

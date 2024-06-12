@@ -25,10 +25,11 @@
           v-for="color in grayColors"
           :key="color.name"
           class="color-swatch border"
-          :class="['border-' + color.name + '-800', 'bg-' + color.name + '-950']"
+          :class="['border-' + color.name + '-800', 'bg-' + color.name + '-900']"
           @click="updateGrayColor(color)"
       ></div>
     </div>
+    <UDivider></UDivider>
     <h2>Color Combinations</h2>
     <p class="text-xs">Notice: some of the color themes below can have unexpected results</p>
     <div class="flex gap-1">
@@ -49,6 +50,7 @@ import { useAppConfig } from '#app'
 import { useAuthStore } from '~/stores/useAuthStore';
 
 const primaryColors = ref([
+  { name: 'mariner' },
   { name: 'blue' },
   { name: 'red' },
   { name: 'green' },
@@ -59,13 +61,13 @@ const primaryColors = ref([
 ])
 
 const grayColors = ref([
+  { name: 'slate' },
   { name: 'zinc' },
   { name: 'neutral' },
   { name: 'stone' },
   { name: 'codgray' },
   { name: 'martinique' },
   { name: 'crimson' },
-  { name: 'slate' },
   { name: 'steel' },
   { name: 'charcoal' },
   { name: 'twilight' },
@@ -90,11 +92,13 @@ const auth = useAuthStore();
 
 const updatePrimaryColor = (color) => {
   auth.setUserPreferences({primary: color.name});
+  localStorage.setItem('primary', color.name);
   appConfig.ui.primary = color.name;
 }
 
 const updateGrayColor = (color) => {
   auth.setUserPreferences({secondary: color.name});
+  localStorage.setItem('secondary', color.name);
   appConfig.ui.gray = color.name;
 }
 </script>
