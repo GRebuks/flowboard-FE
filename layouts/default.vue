@@ -15,12 +15,10 @@ const auth = useAuthStore();
 // });
 
 onBeforeMount(async () => {
-  if (process.client) {
-    if (auth.isLoggedIn) {
-      const appConfig = useAppConfig();
-      appConfig.ui.primary = localStorage.getItem('primary') || 'mariner';
-      appConfig.ui.gray = localStorage.getItem('secondary') || 'slate';
-    }
+  if (auth.isLoggedIn) {
+    const appConfig = useAppConfig();
+    appConfig.ui.primary = localStorage.getItem('primary') || 'mariner';
+    appConfig.ui.gray = localStorage.getItem('secondary') || 'slate';
   }
 });
 
