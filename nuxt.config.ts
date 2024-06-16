@@ -27,5 +27,5 @@ export default defineNuxtConfig({
   ui: {
     global: true,
   },
-  mode: 'universal',
+  ssr: true,
 })
