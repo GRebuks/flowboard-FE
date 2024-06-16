@@ -88,6 +88,8 @@ async function reloadWorkspaces() {
     }
     console.log(ownedWorkspaces.value);
     console.log(participatedWorkspaces.value);
+  } else {
+    console.log('no workspaces, aaaa');
   }
 }
 
