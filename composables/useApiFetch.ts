@@ -4,7 +4,7 @@ import {ref} from "vue";
 export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}){
   let headers: any = {
     accept: "application/json",
-    referer: "http://localhost:3000",
+    referer: "https://flowboard-be-f933713bceca.herokuapp.com:80",
   }
 
   const token = useCookie('XSRF-TOKEN', {
@@ -31,5 +31,5 @@ export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}){
     },
   };
 
-  return useFetch("http://localhost:80" + path, fetchOptions);
+  return useFetch("https://flowboard-be-f933713bceca.herokuapp.com:80" + path, fetchOptions);
 }
