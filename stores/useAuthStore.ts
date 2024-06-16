@@ -3,7 +3,6 @@ import { useWorkspacesStore } from "~/stores/useWorkspacesStore";
 import { useBoardsStore } from "~/stores/useBoardsStore";
 import { ref, computed } from "vue";
 import { useAppConfig } from "#app";
-import { persistedState } from "pinia-plugin-persistedstate";
 
 type User = {
     id: number;
