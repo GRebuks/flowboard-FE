@@ -172,6 +172,9 @@ export const useBoardsStore = defineStore('boards', () => {
     }
 
     return {
+        hydrate(initialState: any) {
+            Object.assign(this, initialState)
+        },
         fetchBoards, fetchBoard, clearBoards, saveBoard,
         createBoard, deleteBoard,
         createColumn, deleteColumn,

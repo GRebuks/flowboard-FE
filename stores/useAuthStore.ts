@@ -105,5 +105,11 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('secondary', appConfig.ui.gray);
     }
 
-    return { user, login, isLoggedIn, fetchUser, logout, register, getUserPreferences, setUserPreferences }
+
+
+    return {
+        hydrate(initialState: any) {
+            Object.assign(this, initialState)
+        },
+        user, login, isLoggedIn, fetchUser, logout, register, getUserPreferences, setUserPreferences }
   })

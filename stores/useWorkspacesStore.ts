@@ -67,5 +67,9 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
         });
     }
 
-    return { fetchWorkspaces, fetchUserWorkspaces, workspaces, clearWorkspaces, createWorkspace, deleteWorkspace, addParticipant, removeParticipant }
+    return {
+        hydrate(initialState: any) {
+            Object.assign(this, initialState)
+        },
+        fetchWorkspaces, fetchUserWorkspaces, workspaces, clearWorkspaces, createWorkspace, deleteWorkspace, addParticipant, removeParticipant }
   })
