@@ -3,53 +3,54 @@ import { useWorkspacesStore } from "~/stores/useWorkspacesStore";
 import { useBoardsStore } from "~/stores/useBoardsStore";
 import { ref, computed } from "vue";
 import { useAppConfig } from "#app";
-import { useApiFetch } from "@/api";
+import { persistedState } from "pinia-plugin-persistedstate";
 
 type User = {
     id: number;
     username: string;
     email: string;
-};
+}
 
 type Credentials = {
     email: string;
     password: string;
-};
+}
 
 type RegistrationInfo = {
     username: string;
     email: string;
     password: string;
     password_confirmation: string;
-};
+}
 
 export const useAuthStore = defineStore('auth', {
-    state: () => ({
-        user: null as User | null,
-        isLoggedIn: false,
-    }),
-
+    state: () => {
+        return {
+            user: null as User | null,
+        }
+    },
+    persist: {
+        storage: persistedState.cookiesWithOptions({
+            sameSite: 'strict',
+        }),
+    },
     actions: {
         async logout() {
             await useApiFetch("/logout", { method: "POST" });
             this.user = null;
-            this.isLoggedIn = false;
-            await this.workspacesStore.clearWorkspaces();
-            await this.boardsStore.clearBoards();
+            await useWorkspacesStore().clearWorkspaces();
+            await useBoardsStore().clearBoards();
             localStorage.removeItem('primary');
             localStorage.removeItem('secondary');
             const appConfig = useAppConfig();
-            appConfig.ui.primary = 'mariner';
-            appConfig.ui.gray = 'slate';
+            appConfig.ui.primary = 'ariner';
+            appConfig.ui.gray = 'late';
             navigateTo("/");
         },
 
         async fetchUser() {
             const { data } = await useApiFetch("/api/user");
             this.user = data.value as User;
-            this.isLoggedIn = true;
-            localStorage.setItem('user', JSON.stringify(this.user));
-            localStorage.setItem('isLoggedIn', 'true');
         },
 
         async login(credentials: Credentials) {
@@ -87,6 +88,7 @@ export const useAuthStore = defineStore('auth', {
             const { data } = await useApiFetch(`/api/user/preferences`, {
                 method: 'GET',
             });
+            console.log(data.value.data)
             this.updateUserPreferences(data.value.data);
             return data;
         },
@@ -101,27 +103,14 @@ export const useAuthStore = defineStore('auth', {
 
         updateUserPreferences(data: any) {
             const appConfig = useAppConfig();
-            appConfig.ui.primary = data.primary ? data.primary : 'mariner';
-            appConfig.ui.gray = data.secondary ? data.secondary : 'slate';
+            console.log(data)
+            appConfig.ui.primary = data.primary? data.primary : 'ariner';
+            appConfig.ui.gray = data.secondary? data.secondary : 'late';
             localStorage.setItem('primary', appConfig.ui.primary);
             localStorage.setItem('secondary', appConfig.ui.gray);
         },
     },
-
-    // Enable persistence for this store
-    persist: true,
-
-    // Access other stores if needed
     getters: {
-        workspacesStore: () => useWorkspacesStore(),
-        boardsStore: () => useBoardsStore(),
+        isLoggedIn: (state) =>!!state.user,
     },
-
-    // Hydration method
-    hydrate(initialState: any) {
-        Object.assign(this, initialState);
-    },
-
-    // Computed property
-    isLoggedIn: computed(() => !!this.user),
-});
+})
