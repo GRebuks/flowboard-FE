@@ -1,12 +1,6 @@
-import {defineStore} from "pinia";
-import {ref} from "vue";
-import type {Board, BoardData} from "~/types";
-
-// type Board = {
-//     id: number;
-//     title: string;
-//     description: string;
-// }
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import type { BoardData } from "~/types";
 
 type TaskCreate = {
     title: string;
@@ -15,8 +9,8 @@ type TaskCreate = {
 }
 
 type BoardCreate = {
-  title: string;
-  description: string;
+    title: string;
+    description: string;
 }
 
 type ColumnCreate = {
@@ -29,33 +23,43 @@ type Comment = {
 }
 
 type FetchWithEtag = {
-    data: Board,
-    etag: string,
+    data: BoardData;
+    etag: string;
 }
 
 export const useBoardsStore = defineStore('boards', () => {
     const boards = ref<BoardData[] | null>(null);
-    const etag = ref<string | null>();
-    let i = 0;
-    let isFirstRequest = true;
+    const etag = ref<string | null>(null);
+
+    // Initialize boards and etag from localStorage if available
+    const storedBoards = localStorage.getItem('boards');
+    if (storedBoards) {
+        boards.value = JSON.parse(storedBoards);
+    }
+
+    const storedEtag = localStorage.getItem('etag');
+    if (storedEtag) {
+        etag.value = storedEtag;
+    }
 
     async function fetchBoards(workspace_id: any): Promise<BoardData[]> {
-      const {data} = await useApiFetch(`/api/workspaces/${workspace_id}/boards`);
-      boards.value = data.value as BoardData[];
-      return data.value as BoardData[];
+        const { data } = await useApiFetch(`/api/workspaces/${workspace_id}/boards`);
+        boards.value = data.value as BoardData[];
+
+        // Save boards to localStorage
+        localStorage.setItem('boards', JSON.stringify(data.value));
+        return data.value as BoardData[];
     }
 
     async function fetchBoard(workspace_id: any, board_id: any): Promise<BoardData | null> {
         const headers = etag.value ? { 'If-None-Match': etag.value } : {};
-        const {data, error, status} = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
+        const { data, error } = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
             headers
         });
 
         if (data?.value) {
-            // Magic numbers... if it ain't broke don't fix it
-            if (i > 2) {
-                etag.value = data?.value.etag;
-            } else i++;
+            etag.value = data?.value.etag;
+            localStorage.setItem('etag', data.value.etag);
         }
 
         if (error.value) {
@@ -65,17 +69,11 @@ export const useBoardsStore = defineStore('boards', () => {
         return data.value as BoardData;
     }
 
-    // This is pretty bad
-    const resetEtag = () => {
-        etag.value = '';
-        i = 0;
-    };
-
     async function createBoard(workspace_id: any, info: BoardCreate) {
-      return await useApiFetch(`/api/workspaces/${workspace_id}/boards`, {
-          method: 'POST',
-          body: info,
-      });
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards`, {
+            method: 'POST',
+            body: info,
+        });
     }
 
     async function createColumn(workspace_id: any, board_id: any, info: ColumnCreate) {
@@ -100,9 +98,9 @@ export const useBoardsStore = defineStore('boards', () => {
     }
 
     async function deleteBoard(workspace_id: any, board_id: any) {
-      return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
-          method: 'DELETE',
-      });
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
+            method: 'DELETE',
+        });
     }
 
     async function deleteColumn(workspace_id: any, board_id: any, column_id: any) {
@@ -117,7 +115,6 @@ export const useBoardsStore = defineStore('boards', () => {
         });
     }
 
-    // COMMENTS
     async function createComment(workspace_id: any, board_id: any, column_id: any, task_id: any, info: Comment) {
         return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments`, {
             method: 'POST',
@@ -132,7 +129,7 @@ export const useBoardsStore = defineStore('boards', () => {
         });
     }
 
-    async function deleteComment(workspace_id: any, board_id: any, column_id: any, task_id: any, comment_id: any,) {
+    async function deleteComment(workspace_id: any, board_id: any, column_id: any, task_id: any, comment_id: any) {
         return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
             method: 'DELETE',
         });
@@ -156,31 +153,49 @@ export const useBoardsStore = defineStore('boards', () => {
         return await useApiFetch(`/api/tasks/${task_id}/participants/add`, {
             method: 'POST',
             body: { 'user_id': info.id },
-        })
+        });
     }
 
     async function removeTaskParticipant(task_id: any, info: any) {
         return await useApiFetch(`/api/tasks/${task_id}/participants/remove`, {
             method: 'POST',
             body: { 'user_id': info.id },
-        })
+        });
     }
 
-
     async function clearBoards() {
-      boards.value = null;
+        boards.value = null;
+        localStorage.removeItem('boards');
+        etag.value = null;
+        localStorage.removeItem('etag');
     }
 
     return {
         hydrate(initialState: any) {
-            Object.assign(this, initialState)
+            Object.assign(this, initialState);
         },
-        fetchBoards, fetchBoard, clearBoards, saveBoard,
-        createBoard, deleteBoard,
-        createColumn, deleteColumn,
-        createTask, updateTask, deleteTask, reorderTask,
-        createComment, updateComment, deleteComment,
-        addTaskParticipant, removeTaskParticipant,
-        boards, resetEtag,
-    }
-  })
+        fetchBoards,
+        fetchBoard,
+        clearBoards,
+        saveBoard,
+        createBoard,
+        deleteBoard,
+        createColumn,
+        deleteColumn,
+        createTask,
+        updateTask,
+        deleteTask,
+        reorderTask,
+        createComment,
+        updateComment,
+        deleteComment,
+        addTaskParticipant,
+        removeTaskParticipant,
+        boards,
+        etag,
+        resetEtag: () => { // resetEtag doesn't need to be async
+            etag.value = null;
+            localStorage.removeItem('etag');
+        },
+    };
+});
