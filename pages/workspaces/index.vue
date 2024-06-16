@@ -93,7 +93,11 @@ async function reloadWorkspaces() {
   }
 }
 
-onMounted(await reloadWorkspaces);
+onBeforeMount(async () => {
+  await reloadWorkspaces();
+});
+
+//onMounted(await reloadWorkspaces);
 
 async function handleDeleteWorkspace(workspaceId: any) {
   await workspacesStore.deleteWorkspace(workspaceId);

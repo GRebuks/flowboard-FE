@@ -4,7 +4,17 @@ import { useAuthStore } from '~/stores/useAuthStore';
 
 const auth = useAuthStore();
 
-onMounted(() => {
+// onMounted(() => {
+//   if (process.client) {
+//     if (auth.isLoggedIn) {
+//       const appConfig = useAppConfig();
+//       appConfig.ui.primary = localStorage.getItem('primary') || 'mariner';
+//       appConfig.ui.gray = localStorage.getItem('secondary') || 'slate';
+//     }
+//   }
+// });
+
+onBeforeMount(async () => {
   if (process.client) {
     if (auth.isLoggedIn) {
       const appConfig = useAppConfig();
