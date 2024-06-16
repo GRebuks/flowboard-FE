@@ -1,6 +1,12 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
-import type { BoardData } from "~/types";
+import {defineStore} from "pinia";
+import {ref} from "vue";
+import type {Board, BoardData} from "~/types";
+
+// type Board = {
+//     id: number;
+//     title: string;
+//     description: string;
+// }
 
 type TaskCreate = {
     title: string;
@@ -9,8 +15,8 @@ type TaskCreate = {
 }
 
 type BoardCreate = {
-    title: string;
-    description: string;
+  title: string;
+  description: string;
 }
 
 type ColumnCreate = {
@@ -23,270 +29,158 @@ type Comment = {
 }
 
 type FetchWithEtag = {
-    data: BoardData;
-    etag: string;
+    data: Board,
+    etag: string,
 }
 
 export const useBoardsStore = defineStore('boards', () => {
     const boards = ref<BoardData[] | null>(null);
-    const etag = ref<string | null>(null);
-
-    // Initialize boards and etag from localStorage if available
-    if (typeof window !== 'undefined' && window.localStorage) {
-        const storedBoards = localStorage.getItem('boards');
-        if (storedBoards) {
-            boards.value = JSON.parse(storedBoards);
-        }
-
-        const storedEtag = localStorage.getItem('etag');
-        if (storedEtag) {
-            etag.value = storedEtag;
-        }
-    }
+    const etag = ref<string | null>();
+    let i = 0;
+    let isFirstRequest = true;
 
     async function fetchBoards(workspace_id: any): Promise<BoardData[]> {
-        try {
-            const { data } = await useApiFetch(`/api/workspaces/${workspace_id}/boards`);
-            boards.value = data.value as BoardData[];
-
-            // Save boards to localStorage if available
-            if (typeof window !== 'undefined' && window.localStorage) {
-                localStorage.setItem('boards', JSON.stringify(data.value));
-            }
-
-            return data.value as BoardData[];
-        } catch (error) {
-            console.error("Error fetching boards:", error);
-            throw error;
-        }
+      const {data} = await useApiFetch(`/api/workspaces/${workspace_id}/boards`);
+      boards.value = data.value as BoardData[];
+      return data.value as BoardData[];
     }
 
     async function fetchBoard(workspace_id: any, board_id: any): Promise<BoardData | null> {
-        try {
-            const headers = etag.value ? { 'If-None-Match': etag.value } : {};
-            const { data, error } = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
-                headers
-            });
+        const headers = etag.value ? { 'If-None-Match': etag.value } : {};
+        const {data, error, status} = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
+            headers
+        });
 
-            if (data?.value) {
+        if (data?.value) {
+            // Magic numbers... if it ain't broke don't fix it
+            if (i > 2) {
                 etag.value = data?.value.etag;
-
-                // Save etag to localStorage if available
-                if (typeof window !== 'undefined' && window.localStorage) {
-                    localStorage.setItem('etag', data.value.etag);
-                }
-            }
-
-            if (error.value) {
-                throw error.value;
-            }
-
-            return data.value as BoardData;
-        } catch (error) {
-            console.error("Error fetching board:", error);
-            throw error;
+            } else i++;
         }
+
+        if (error.value) {
+            throw error.value;
+        }
+
+        return data.value as BoardData;
     }
 
-    async function createBoard(workspace_id: any, info: BoardCreate) {
-        try {
-            const board = await useApiFetch(`/api/workspaces/${workspace_id}/boards`, {
-                method: 'POST',
-                body: info,
-            });
+    // This is pretty bad
+    const resetEtag = () => {
+        etag.value = '';
+        i = 0;
+    };
 
-            await fetchBoards(workspace_id); // Update local state and localStorage
-            return board;
-        } catch (error) {
-            console.error("Error creating board:", error);
-            throw error;
-        }
+    async function createBoard(workspace_id: any, info: BoardCreate) {
+      return await useApiFetch(`/api/workspaces/${workspace_id}/boards`, {
+          method: 'POST',
+          body: info,
+      });
     }
 
     async function createColumn(workspace_id: any, board_id: any, info: ColumnCreate) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns`, {
-                method: 'POST',
-                body: info,
-            });
-        } catch (error) {
-            console.error("Error creating column:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns`, {
+            method: 'POST',
+            body: info,
+        });
     }
 
     async function createTask(workspace_id: any, board_id: any, column_id: any, info: TaskCreate) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks`, {
-                method: 'POST',
-                body: info,
-            });
-        } catch (error) {
-            console.error("Error creating task:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks`, {
+            method: 'POST',
+            body: info,
+        });
     }
 
     async function updateTask(workspace_id: any, board_id: any, column_id: any, task_id: any, info: TaskCreate) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}`, {
-                method: 'PATCH',
-                body: info,
-            });
-        } catch (error) {
-            console.error("Error updating task:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}`, {
+            method: 'PATCH',
+            body: info,
+        });
     }
 
     async function deleteBoard(workspace_id: any, board_id: any) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
-                method: 'DELETE',
-            });
-        } catch (error) {
-            console.error("Error deleting board:", error);
-            throw error;
-        }
+      return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
+          method: 'DELETE',
+      });
     }
 
     async function deleteColumn(workspace_id: any, board_id: any, column_id: any) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}`, {
-                method: 'DELETE',
-            });
-        } catch (error) {
-            console.error("Error deleting column:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}`, {
+            method: 'DELETE',
+        });
     }
 
     async function deleteTask(workspace_id: any, board_id: any, column_id: any, task_id: any) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}`, {
-                method: 'DELETE',
-            });
-        } catch (error) {
-            console.error("Error deleting task:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}`, {
+            method: 'DELETE',
+        });
     }
 
+    // COMMENTS
     async function createComment(workspace_id: any, board_id: any, column_id: any, task_id: any, info: Comment) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments`, {
-                method: 'POST',
-                body: info,
-            });
-        } catch (error) {
-            console.error("Error creating comment:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments`, {
+            method: 'POST',
+            body: info,
+        });
     }
 
     async function updateComment(workspace_id: any, board_id: any, column_id: any, task_id: any, comment_id: any, info: Comment) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
-                method: 'PATCH',
-                body: info,
-            });
-        } catch (error) {
-            console.error("Error updating comment:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
+            method: 'PATCH',
+            body: info,
+        });
     }
 
-    async function deleteComment(workspace_id: any, board_id: any, column_id: any, task_id: any, comment_id: any) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
-                method: 'DELETE',
-            });
-        } catch (error) {
-            console.error("Error deleting comment:", error);
-            throw error;
-        }
+    async function deleteComment(workspace_id: any, board_id: any, column_id: any, task_id: any, comment_id: any,) {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
+            method: 'DELETE',
+        });
     }
 
-    async function saveBoard(workspace_id: any, board_id: any, info: any) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/save`, {
-                method: 'POST',
-                body: info,
-            });
-        } catch (error) {
-            console.error("Error saving board:", error);
-            throw error;
-        }
+    function saveBoard(workspace_id: any, board_id: any, info: any) {
+        return useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/save`, {
+            method: 'POST',
+            body: info,
+        });
     }
 
     async function reorderTask(workspace_id: any, board_id: any, info: any) {
-        try {
-            return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/reorder`, {
-                method: 'POST',
-                body: info,
-            });
-        } catch (error) {
-            console.error("Error reordering task:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/reorder`, {
+            method: 'POST',
+            body: info,
+        });
     }
 
     async function addTaskParticipant(task_id: any, info: any) {
-        try {
-            return await useApiFetch(`/api/tasks/${task_id}/participants/add`, {
-                method: 'POST',
-                body: { 'user_id': info.id },
-            });
-        } catch (error) {
-            console.error("Error adding task participant:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/tasks/${task_id}/participants/add`, {
+            method: 'POST',
+            body: { 'user_id': info.id },
+        })
     }
 
     async function removeTaskParticipant(task_id: any, info: any) {
-        try {
-            return await useApiFetch(`/api/tasks/${task_id}/participants/remove`, {
-                method: 'POST',
-                body: { 'user_id': info.id },
-            });
-        } catch (error) {
-            console.error("Error removing task participant:", error);
-            throw error;
-        }
+        return await useApiFetch(`/api/tasks/${task_id}/participants/remove`, {
+            method: 'POST',
+            body: { 'user_id': info.id },
+        })
     }
 
-    async function clearBoards() {
-        boards.value = null;
 
-        // Remove from localStorage if available
-        if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.removeItem('boards');
-            localStorage.removeItem('etag');
-        }
+    async function clearBoards() {
+      boards.value = null;
     }
 
     return {
         hydrate(initialState: any) {
-            Object.assign(this, initialState);
+            Object.assign(this, initialState)
         },
-        fetchBoards,
-        fetchBoard,
-        clearBoards,
-        createBoard,
-        deleteBoard,
-        createColumn,
-        deleteColumn,
-        createTask,
-        updateTask,
-        deleteTask,
-        createComment,
-        updateComment,
-        deleteComment,
-        saveBoard,
-        reorderTask,
-        addTaskParticipant,
-        removeTaskParticipant,
-        boards,
-        etag,
-    };
-});
+        fetchBoards, fetchBoard, clearBoards, saveBoard,
+        createBoard, deleteBoard,
+        createColumn, deleteColumn,
+        createTask, updateTask, deleteTask, reorderTask,
+        createComment, updateComment, deleteComment,
+        addTaskParticipant, removeTaskParticipant,
+        boards, resetEtag,
+    }
+  })

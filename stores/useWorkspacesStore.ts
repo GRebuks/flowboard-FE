@@ -1,6 +1,12 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
-import type { Workspace } from "~/types";
+import {defineStore} from "pinia";
+import {ref} from "vue";
+import type {Workspace} from "~/types";
+//
+// type Workspace = {
+//     id: number;
+//     title: string;
+//     description: string;
+// }
 
 type WorkspaceCreate = {
     title: string;
@@ -17,59 +23,34 @@ type Participant = {
 export const useWorkspacesStore = defineStore('workspaces', () => {
     const workspaces = ref<Workspace[] | null>(null);
 
-    // Initialize workspaces from localStorage if available
-    if (typeof window !== 'undefined' && window.localStorage) {
-        const storedWorkspaces = localStorage.getItem('workspaces');
-        if (storedWorkspaces) {
-            workspaces.value = JSON.parse(storedWorkspaces);
-        }
-    }
-
     async function fetchWorkspaces() {
-        const { data } = await useApiFetch(`/api/workspaces`);
-        workspaces.value = data.value as Workspace[];
-
-        // Save workspaces to localStorage if available
-        if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.setItem('workspaces', JSON.stringify(data.value));
-        }
+      const {data} = await useApiFetch(`/api/workspaces`);
+      workspaces.value = data.value as Workspace[];
     }
 
     async function fetchUserWorkspaces(user_id: any) {
-        const { data } = await useApiFetch(`/api/users/${user_id}/workspaces`);
-        workspaces.value = data.value as Workspace[];
-
-        // Save workspaces to localStorage if available
-        if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.setItem('workspaces', JSON.stringify(data.value));
-        }
+      const {data} = await useApiFetch(`/api/users/${user_id}/workspaces`);
+      workspaces.value = data.value as Workspace[];
     }
 
     async function createWorkspace(info: WorkspaceCreate) {
-        const workspace = await useApiFetch(`/api/workspaces`, {
-            method: 'POST',
-            body: info,
-        });
-
-        await fetchWorkspaces(); // Update local state and localStorage
-        return workspace;
+      const workspace = await useApiFetch(`/api/workspaces`, {
+        method: 'POST',
+        body: info,
+      });
+      await fetchWorkspaces();
+      return workspace;
     }
 
     async function deleteWorkspace(workspace_id: any) {
-        await useApiFetch(`/api/workspaces/${workspace_id}`, {
-            method: 'DELETE',
-        });
-
-        await fetchWorkspaces(); // Update local state and localStorage
+      await useApiFetch(`/api/workspaces/${workspace_id}`, {
+        method: 'DELETE',
+      });
+      await fetchWorkspaces();
     }
 
     async function clearWorkspaces() {
-        workspaces.value = null;
-
-        // Remove from localStorage if available
-        if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.removeItem('workspaces');
-        }
+      workspaces.value = null;
     }
 
     async function addParticipant(workspace_id: any, info: Participant) {
@@ -88,15 +69,7 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
 
     return {
         hydrate(initialState: any) {
-            Object.assign(this, initialState);
+            Object.assign(this, initialState)
         },
-        fetchWorkspaces,
-        fetchUserWorkspaces,
-        workspaces,
-        clearWorkspaces,
-        createWorkspace,
-        deleteWorkspace,
-        addParticipant,
-        removeParticipant,
-    };
-});
+        fetchWorkspaces, fetchUserWorkspaces, workspaces, clearWorkspaces, createWorkspace, deleteWorkspace, addParticipant, removeParticipant }
+  })
