@@ -18,25 +18,31 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
     const workspaces = ref<Workspace[] | null>(null);
 
     // Initialize workspaces from localStorage if available
-    const storedWorkspaces = localStorage.getItem('workspaces');
-    if (storedWorkspaces) {
-        workspaces.value = JSON.parse(storedWorkspaces);
+    if (typeof window !== 'undefined' && window.localStorage) {
+        const storedWorkspaces = localStorage.getItem('workspaces');
+        if (storedWorkspaces) {
+            workspaces.value = JSON.parse(storedWorkspaces);
+        }
     }
 
     async function fetchWorkspaces() {
         const { data } = await useApiFetch(`/api/workspaces`);
         workspaces.value = data.value as Workspace[];
 
-        // Save workspaces to localStorage
-        localStorage.setItem('workspaces', JSON.stringify(data.value));
+        // Save workspaces to localStorage if available
+        if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('workspaces', JSON.stringify(data.value));
+        }
     }
 
     async function fetchUserWorkspaces(user_id: any) {
         const { data } = await useApiFetch(`/api/users/${user_id}/workspaces`);
         workspaces.value = data.value as Workspace[];
 
-        // Save workspaces to localStorage
-        localStorage.setItem('workspaces', JSON.stringify(data.value));
+        // Save workspaces to localStorage if available
+        if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('workspaces', JSON.stringify(data.value));
+        }
     }
 
     async function createWorkspace(info: WorkspaceCreate) {
@@ -59,7 +65,11 @@ export const useWorkspacesStore = defineStore('workspaces', () => {
 
     async function clearWorkspaces() {
         workspaces.value = null;
-        localStorage.removeItem('workspaces'); // Remove from localStorage
+
+        // Remove from localStorage if available
+        if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.removeItem('workspaces');
+        }
     }
 
     async function addParticipant(workspace_id: any, info: Participant) {
