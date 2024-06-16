@@ -52,7 +52,8 @@ export const useBoardsStore = defineStore('boards', () => {
         });
 
         if (data?.value) {
-            if (i > 4) {
+            // Magic numbers... if it ain't broke don't fix it
+            if (i > 2) {
                 etag.value = data?.value.etag;
             } else i++;
         }
@@ -64,96 +65,81 @@ export const useBoardsStore = defineStore('boards', () => {
         return data.value as BoardData;
     }
 
+    // This is pretty bad
+    const resetEtag = () => {
+        etag.value = '';
+        i = 0;
+    };
 
     async function createBoard(workspace_id: any, info: BoardCreate) {
-      const board = await useApiFetch(`/api/workspaces/${workspace_id}/boards`, {
-        method: 'POST',
-        body: info,
+      return await useApiFetch(`/api/workspaces/${workspace_id}/boards`, {
+          method: 'POST',
+          body: info,
       });
-      await fetchBoards(workspace_id);
-      return board;
     }
 
     async function createColumn(workspace_id: any, board_id: any, info: ColumnCreate) {
-        const column = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns`, {
             method: 'POST',
             body: info,
         });
-        await fetchBoards(workspace_id);
-        return column;
     }
 
     async function createTask(workspace_id: any, board_id: any, column_id: any, info: TaskCreate) {
-        const task = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks`, {
             method: 'POST',
             body: info,
         });
-        await fetchBoards(workspace_id);
-        return task;
     }
 
     async function updateTask(workspace_id: any, board_id: any, column_id: any, task_id: any, info: TaskCreate) {
-        const task = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}`, {
             method: 'PATCH',
             body: info,
         });
-        await fetchBoards(workspace_id);
-        return task;
     }
 
     async function deleteBoard(workspace_id: any, board_id: any) {
-      const board = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
-        method: 'DELETE',
+      return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}`, {
+          method: 'DELETE',
       });
-      await fetchBoards(workspace_id);
-      return board;
     }
 
     async function deleteColumn(workspace_id: any, board_id: any, column_id: any) {
-        const column = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}`, {
             method: 'DELETE',
         });
-        await fetchBoards(workspace_id);
-        return column;
     }
 
     async function deleteTask(workspace_id: any, board_id: any, column_id: any, task_id: any) {
-        const task = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}`, {
             method: 'DELETE',
         });
-        await fetchBoards(workspace_id);
-        return task;
     }
 
     // COMMENTS
     async function createComment(workspace_id: any, board_id: any, column_id: any, task_id: any, info: Comment) {
-        const comment = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments`, {
             method: 'POST',
             body: info,
         });
-        await fetchBoards(workspace_id);
-        return comment;
     }
 
     async function updateComment(workspace_id: any, board_id: any, column_id: any, task_id: any, comment_id: any, info: Comment) {
-        const comment = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
             method: 'PATCH',
             body: info,
         });
-        await fetchBoards(workspace_id);
-        return comment;
     }
 
     async function deleteComment(workspace_id: any, board_id: any, column_id: any, task_id: any, comment_id: any,) {
-        const comment = await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
+        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/columns/${column_id}/tasks/${task_id}/comments/${comment_id}`, {
             method: 'DELETE',
         });
-        await fetchBoards(workspace_id);
-        return comment;
     }
 
-    async function saveBoard(workspace_id: any, board_id: any, info: any) {
-        return await useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/save`, {
+    function saveBoard(workspace_id: any, board_id: any, info: any) {
+        return useApiFetch(`/api/workspaces/${workspace_id}/boards/${board_id}/save`, {
             method: 'POST',
             body: info,
         });
@@ -192,6 +178,6 @@ export const useBoardsStore = defineStore('boards', () => {
         createTask, updateTask, deleteTask, reorderTask,
         createComment, updateComment, deleteComment,
         addTaskParticipant, removeTaskParticipant,
-        boards,
+        boards, resetEtag,
     }
   })

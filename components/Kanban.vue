@@ -165,6 +165,7 @@ const stopRequestLoop = () => {
     clearTimeout(timeoutId.value);
     timeoutId.value = null;
   }
+  boardsStore.resetEtag();
 };
 
 async function handleCreateColumn() {
@@ -252,104 +253,88 @@ function updateFocusedElements(columnId: any, taskId: any) {
   }
 }
 
-async function handleColumnDrop(dropResult: any) {
-  if (dropResult.removedIndex !== null && dropResult.addedIndex !== null) {
-    // Item was dragged within the same container
-    if (dropResult.removedIndex !== dropResult.addedIndex) {
-      const columns = board.value?.data.columns;
-      if (columns) {
-        const movedColumn = columns[dropResult.removedIndex];
-        movedColumn.order = dropResult.addedIndex + 1;
+async function handleColumnDrop(dropResult: DropResult) {
+  if (dropResult.removedIndex === null || dropResult.addedIndex === null || dropResult.removedIndex === dropResult.addedIndex) {
+    return;
+  }
 
-        if (dropResult.addedIndex > dropResult.removedIndex) {
-          // Items that were shifted to the right
-          for (let i = dropResult.removedIndex + 1; i <= dropResult.addedIndex; i++) {
-            columns[i].order -= 1;
-          }
-        } else if (dropResult.addedIndex < dropResult.removedIndex) {
-          // Items that were shifted to the left
-          for (let i = dropResult.addedIndex; i < dropResult.removedIndex; i++) {
-            columns[i].order += 1;
-          }
-        }
+  const columns = board.value?.data.columns;
+  if (!columns) {
+    return;
+  }
 
+  const movedColumn = columns[dropResult.removedIndex];
+  movedColumn.order = dropResult.addedIndex + 1;
 
-        columns.splice(dropResult.removedIndex, 1); // Remove from the old position
-        columns.splice(dropResult.addedIndex, 0, movedColumn); // Insert at the new position
+  const start = Math.min(dropResult.removedIndex, dropResult.addedIndex);
+  const end = Math.max(dropResult.removedIndex, dropResult.addedIndex);
 
-        if (board.value) {
-          board.value.data.columns = columns;
-        }
-
-        await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
-      }
+  for (let i = start; i <= end; i++) {
+    if (i !== dropResult.removedIndex) {
+      columns[i].order += dropResult.removedIndex < dropResult.addedIndex ? -1 : 1;
     }
   }
+
+  columns.splice(dropResult.removedIndex, 1);
+  columns.splice(dropResult.addedIndex, 0, movedColumn);
+
+  if (board.value) {
+    board.value.data.columns = columns;
+  }
+
+  boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
 }
 
 async function handleTaskDrop(columnActive: any, dropResult: DropResult) {
-  if (dropResult.removedIndex !== null && dropResult.addedIndex !== null) {
-    // Item was dragged within the same container
-    if (dropResult.removedIndex !== dropResult.addedIndex) {
-      const tasks = columnActive.tasks;
-      console.log(columnActive);
-      const movedTask = tasks[dropResult.removedIndex];
-      movedTask.order = dropResult.addedIndex + 1;
+  if (dropResult.removedIndex === null && dropResult.addedIndex === null) {
+    return;
+  }
 
-      if (dropResult.addedIndex > dropResult.removedIndex) {
-        // Items that were shifted to the right
-        for (let i = dropResult.removedIndex + 1; i <= dropResult.addedIndex; i++) {
-          tasks[i].order -= 1;
-        }
-      } else if (dropResult.addedIndex < dropResult.removedIndex) {
-        // Items that were shifted to the left
-        for (let i = dropResult.addedIndex; i < dropResult.removedIndex; i++) {
-          tasks[i].order += 1;
-        }
+  if (dropResult.removedIndex !== null && dropResult.addedIndex !== null && dropResult.removedIndex !== dropResult.addedIndex) {
+    const tasks = columnActive.tasks;
+    const movedTask = tasks[dropResult.removedIndex];
+    movedTask.order = dropResult.addedIndex + 1;
+
+    const start = Math.min(dropResult.removedIndex, dropResult.addedIndex);
+    const end = Math.max(dropResult.removedIndex, dropResult.addedIndex);
+
+    for (let i = start; i <= end; i++) {
+      if (i !== dropResult.removedIndex) {
+        tasks[i].order += dropResult.removedIndex < dropResult.addedIndex ? -1 : 1;
       }
-
-      tasks.splice(dropResult.removedIndex, 1); // Remove from the old position
-      tasks.splice(dropResult.addedIndex, 0, movedTask); // Insert at the new position
-
-      const boardColumnActive = board.value?.data.columns.find(column => column.id === columnActive.id);
-      if (boardColumnActive) {
-        boardColumnActive.tasks = tasks;
-      }
-
-      await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
     }
-  } else if (dropResult.addedIndex !== null) {
-    // Task is moved from one column to another
 
+    tasks.splice(dropResult.removedIndex, 1);
+    tasks.splice(dropResult.addedIndex, 0, movedTask);
+
+    const boardColumnActive = board.value?.data.columns.find(column => column.id === columnActive.id);
+    if (boardColumnActive) {
+      boardColumnActive.tasks = tasks;
+    }
+
+    boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
+  } else if (dropResult.addedIndex !== null) {
     const oldIndex = columnFocus.value.tasks.indexOf(taskFocus.value);
 
-    // Subtract order by 1 on all elements after the removed task
     for (let i = oldIndex; i < columnFocus.value.tasks.length; i++) {
       columnFocus.value.tasks[i].order -= 1;
     }
 
-    // Remove old task from column
     columnFocus.value.tasks.splice(oldIndex, 1);
-
-    // Add the old task into the new column
     columnActive.tasks.splice(dropResult.addedIndex, 0, taskFocus.value);
-
-    // Set the order number of the new task inside the new column to the addedIndex value
     columnActive.tasks[dropResult.addedIndex].order = dropResult.addedIndex + 1;
 
-    // Raise order by 1 on all elements after the inserted task
     for (let i = dropResult.addedIndex + 1; i < columnActive.tasks.length; i++) {
       columnActive.tasks[i].order += 1;
     }
 
-    // Change the BelongsTo relation of the task to the new column id
     await boardsStore.reorderTask(route.params.workspace_id, route.params.board_id, {
       taskId: taskFocus.value.id,
       newColumnId: columnActive.id
-    })
+    });
+
     columnActive.tasks[dropResult.addedIndex].board_column_id = columnActive.id;
 
-    // Update the tasks for each used board column
     const boardColumnFocus = board.value?.data.columns.find(column => column.id === columnFocus.value.id);
     if (boardColumnFocus) {
       boardColumnFocus.tasks = columnFocus.value.tasks;
@@ -360,7 +345,7 @@ async function handleTaskDrop(columnActive: any, dropResult: DropResult) {
       boardColumnActive.tasks = columnActive.tasks;
     }
 
-    await boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
+    boardsStore.saveBoard(route.params.workspace_id, route.params.board_id, board.value);
   }
 }
 
@@ -431,7 +416,6 @@ const openParticipantsModal = async () => {
 const handleColorChange = async (color: {name: string, hex: string}) => {
   taskFocus.value.color = color.name;
   await handleUpdateTask(columnFocus.value.id, taskFocus.value.id);
-  console.log(color.name)
 }
 
 </script>
