@@ -1,14 +1,14 @@
-import type { UseFetchOptions } from '#imports'
-import {ref} from "vue";
+import type { UseFetchOptions } from '#imports';
+import { ref } from 'vue';
 
-export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}){
+export function useApiFetch<T>(path: string, options: UseFetchOptions<T> = {}) {
   let headers: any = {
-    accept: "application/json",
-    referer: "https://flowboard-be-f933713bceca.herokuapp.com",
-  }
+    accept: 'application/json',
+    referer: 'https://flowboard-be-f933713bceca.herokuapp.com',
+  };
 
   const token = useCookie('XSRF-TOKEN', {
-    secure: true
+    secure: true,
   });
 
   if (token.value) {
@@ -18,9 +18,13 @@ export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}){
   if (process.server) {
     headers = {
       ...headers,
-      ...useRequestHeaders(["cookie"])
-    }
+      ...useRequestHeaders(['cookie']),
+    };
   }
+
+  console.log('Token:', token.value);
+  console.log('Headers:', headers);
+
   const fetchOptions = {
     credentials: 'include',
     watch: false,
@@ -31,5 +35,7 @@ export function useApiFetch<T> (path: string, options: UseFetchOptions<T> = {}){
     },
   };
 
-  return useFetch("https://flowboard-be-f933713bceca.herokuapp.com" + path, fetchOptions);
+  console.log('Fetch Options:', fetchOptions);
+
+  return useFetch('https://flowboard-be-f933713bceca.herokuapp.com' + path, fetchOptions);
 }
