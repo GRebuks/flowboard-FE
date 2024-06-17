@@ -27,8 +27,18 @@ export const useWorkspacesStore = defineStore('workspaces', {
     },
     actions: {
         async fetchWorkspaces() {
-            const {data} = await useApiFetch(`/api/workspaces`);
-            this.workspaces = data.value as Workspace[];
+            try {
+                console.log("Fetching workspaces...");
+                const { data, error } = await useApiFetch('/api/workspaces');
+                if (error.value) {
+                    console.error("Error fetching workspaces:", error.value);
+                } else {
+                    this.workspaces = data.value;
+                    console.log("Workspaces fetched successfully:", this.workspaces);
+                }
+            } catch (err) {
+                console.error("Failed to fetch workspaces:", err);
+            }
         },
 
         async fetchUserWorkspaces(user_id: any) {
